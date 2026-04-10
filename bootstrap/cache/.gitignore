@@ -6,3 +6,10 @@ vendor/
 node_modules/
 storage/logs
 storage/framework
+/vendor
+/node_modules
+.env
+/storage/logs
+/storage/framework
+/public/spike-bootstrap-free-v2
+/bootstrap/cache/*.php
