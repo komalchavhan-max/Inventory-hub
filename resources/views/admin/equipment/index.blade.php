@@ -34,7 +34,7 @@
                             <td>{{ $item->id }}</td>
                             <td>{{ $item->name }}</td>
                             <td>{{ $item->serial_number }}</td>
-                            <td>{{ $item->category }}</td>
+                            <td>{{ $item->category->name ?? 'Uncategorized' }}</td>
                             <td>
                                 @if($item->status == 'Available')
                                     <span class="badge bg-success">Available</span>

@@ -27,16 +27,13 @@
                         
                         <div class="mb-3">
                             <label class="form-label">Category</label>
-                            <select name="category" class="form-control">
-                                <option value="Laptop" {{ $equipment->category == 'Laptop' ? 'selected' : '' }}>Laptop</option>
-                                <option value="Desktop" {{ $equipment->category == 'Desktop' ? 'selected' : '' }}>Desktop</option>
-                                <option value="Monitor" {{ $equipment->category == 'Monitor' ? 'selected' : '' }}>Monitor</option>
-                                <option value="Keyboard" {{ $equipment->category == 'Keyboard' ? 'selected' : '' }}>Keyboard</option>
-                                <option value="Mouse" {{ $equipment->category == 'Mouse' ? 'selected' : '' }}>Mouse</option>
-                                <option value="Printer" {{ $equipment->category == 'Printer' ? 'selected' : '' }}>Printer</option>
-                                <option value="Chair" {{ $equipment->category == 'Chair' ? 'selected' : '' }}>Chair</option>
-                                <option value="Desk" {{ $equipment->category == 'Desk' ? 'selected' : '' }}>Desk</option>
-                                <option value="Other" {{ $equipment->category == 'Other' ? 'selected' : '' }}>Other</option>
+                            <select name="category_id" class="form-control" required>
+                                <option value="">Select Category</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ $equipment->category_id == $category->id ? 'selected' : '' }}>
+                                        {{ $category->name }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
                         

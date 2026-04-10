@@ -8,9 +8,10 @@ class Equipment extends Model
     protected $table = 'equipment';
     
     protected $fillable = [
-        'name','description','specifications', 'serial_number', 'category', 'purchase_date','warranty_until','status', 'condition', 'assigned_to'
+        'name', 'description', 'specifications', 'serial_number',
+        'category_id', 'purchase_date', 'warranty_until', 'status',
+        'condition', 'assigned_to'
     ];
-    
     public function maintenanceLogs()
     {
         return $this->hasMany(MaintenanceLog::class);
@@ -42,5 +43,9 @@ class Equipment extends Model
     public function returnRequests()
     {
         return $this->hasMany(ReturnRequest::class);
+    }
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 }

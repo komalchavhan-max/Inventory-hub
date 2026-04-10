@@ -18,7 +18,7 @@ class DashboardController extends Controller
         $assigned = Equipment::where('status', 'Assigned')->count();
         $inRepair = Equipment::where('status', 'In-Repair')->count();
         
-        $recentEquipment = Equipment::latest()->take(5)->get();
+        $recentEquipment = Equipment::with('category')->latest()->take(5)->get();
         
         $pendingEquipmentRequests = EquipmentRequest::where('status', 'Pending')->count();
         $pendingExchangeRequests = ExchangeRequest::where('status', 'Pending')->count();

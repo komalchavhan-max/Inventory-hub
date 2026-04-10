@@ -25,10 +25,11 @@ Route::get('/dashboard', function () {
 // ========== ADMIN ROUTES ==========
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-    //Route::resource('/roles', App\Http\Controllers\Admin\RoleController::class)->names('admin.roles');
     Route::resource('/equipment', App\Http\Controllers\Admin\EquipmentController::class);
-     Route::post('/equipment/{id}/assign', [App\Http\Controllers\Admin\EquipmentController::class, 'assign'])->name('admin.equipment.assign');
-    });
+    Route::resource('/categories', App\Http\Controllers\Admin\CategoryController::class); 
+    Route::get('/categories/{slug}/equipment', [App\Http\Controllers\Admin\CategoryController::class, 'showEquipment'])->name('categories.equipment');
+    Route::post('/equipment/{id}/assign', [App\Http\Controllers\Admin\EquipmentController::class, 'assign'])->name('equipment.assign');
+});
 
 // ========== EMPLOYEE ROUTES ==========
 Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(function () {

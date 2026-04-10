@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Employee Dashboard') - Inventory Hub</title>
-    <link rel="shortcut icon" type="image/png" href="{{ asset('spike-bootstrap-free-v2/src/assets/images/logos/favicon.png') }}" />
-    <link rel="stylesheet" href="{{ asset('spike-bootstrap-free-v2/src/assets/css/styles.min.css') }}" />
+    <link rel="shortcut icon" type="image/png" href="{{ asset('src/assets/images/logos/favicon.png') }}" />
+    <link rel="stylesheet" href="{{ asset('src/assets/css/styles.min.css') }}" />
     @stack('styles')
 </head>
 <body>
@@ -18,7 +18,7 @@
             <div>
                 <div class="brand-logo d-flex align-items-center justify-content-between">
                     <a href="{{ route('employee.dashboard') }}" class="text-nowrap logo-img">
-                        <img src="{{ asset('spike-bootstrap-free-v2/src/assets/images/logos/logo.svg') }}" alt="Logo" />
+                        <img src="{{ asset('src/assets/images/logos/logo.svg') }}" alt="Logo" />
                     </a>
                     <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
                         <i class="ti ti-x fs-8"></i>
@@ -90,7 +90,7 @@
                                 <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
                                     <li class="nav-item dropdown">
                                         <a class="nav-link" href="javascript:void(0)" id="drop2" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <img src="{{ asset('spike-bootstrap-free-v2/src/assets/images/profile/user1.jpg') }}" alt="" width="35" height="35" class="rounded-circle">
+                                            <img src="{{ asset('src/assets/images/profile/user1.jpg') }}" alt="" width="35" height="35" class="rounded-circle">
                                             <span class="ms-2 d-none d-sm-inline">{{ Auth::user()->name }}</span>
                                         </a>
                                         <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up" aria-labelledby="drop2">
@@ -119,11 +119,11 @@
         </div>
     </div>
     
-    <script src="{{ asset('spike-bootstrap-free-v2/src/assets/libs/jquery/dist/jquery.min.js') }}"></script>
-    <script src="{{ asset('spike-bootstrap-free-v2/src/assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('spike-bootstrap-free-v2/src/assets/js/sidebarmenu.js') }}"></script>
-    <script src="{{ asset('spike-bootstrap-free-v2/src/assets/js/app.min.js') }}"></script>
-    <script src="{{ asset('spike-bootstrap-free-v2/src/assets/libs/simplebar/dist/simplebar.js') }}"></script>
+    <script src="{{ asset('src/assets/libs/jquery/dist/jquery.min.js') }}"></script>
+    <script src="{{ asset('src/assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('src/assets/js/sidebarmenu.js') }}"></script>
+    <script src="{{ asset('src/assets/js/app.min.js') }}"></script>
+    <script src="{{ asset('src/assets/libs/simplebar/dist/simplebar.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
     @stack('scripts')
 </body>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin Dashboard') - Inventory Hub</title>
-    <link rel="shortcut icon" type="image/png" href="{{ asset('spike-bootstrap-free-v2/src/assets/images/logos/favicon.png') }}" />
+    <link rel="shortcut icon" type="image/png" href="{{ asset('src/assets/images/logos/favicon.png') }}" />
     
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -24,7 +24,7 @@
             top: 0;
             bottom: 0;
             width: 260px;
-            background: #2c3e50;
+            background: #1b293b;
             color: white;
             z-index: 1000;
             transition: all 0.3s;
@@ -123,7 +123,7 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="logo">
-            <img src="{{ asset('spike-bootstrap-free-v2/src/assets/images/logos/logo.svg') }}" alt="Logo" width="120">
+            <img src="{{ asset('src/assets/images/logos/logo.svg') }}" alt="Logo" width="120">
         </div>
         
         <div class="sidebar-menu">
@@ -135,11 +135,10 @@
             <div class="nav-small-cap mt-3">INVENTORY</div>
             <a href="{{ route('admin.equipment.index') }}" class="nav-link">
                 <i class="bi bi-laptop"></i> Equipment
-            </a>
-            <a href="#" class="nav-link">
+            <a href="{{ route('admin.categories.index') }}" class="nav-link">
                 <i class="bi bi-tag"></i> Categories
-            </a>
-            
+            </a>          
+                    
             <div class="nav-small-cap mt-3">REQUESTS</div>
             <a href="#" class="nav-link">
                 <i class="bi bi-inbox"></i> Equipment Requests
@@ -181,7 +180,7 @@
             </button>
             <div class="dropdown">
                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    <img src="{{ asset('spike-bootstrap-free-v2/src/assets/images/profile/user1.jpg') }}" alt="" width="30" height="30" class="rounded-circle me-2">
+                    <img src="{{ asset('src/assets/images/profile/user1.jpg') }}" alt="" width="30" height="30" class="rounded-circle me-2">
                     {{ Auth::user()->name }}
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
@@ -214,6 +213,18 @@
         
         <!-- Page Content -->
         @yield('content')
+                <!-- Display Validation Errors -->
+        @if($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Error!</strong> Please fix the following issues:
+                <ul class="mb-0 mt-2">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
     </div>
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

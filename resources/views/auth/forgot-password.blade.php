@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Forgot Password - Inventory Hub</title>
-    <link rel="shortcut icon" type="image/png" href="{{ asset('spike-bootstrap-free-v2/src/assets/images/logos/favicon.png') }}" />
-    <link rel="stylesheet" href="{{ asset('spike-bootstrap-free-v2/src/assets/css/styles.min.css') }}" />
+    <link rel="shortcut icon" type="image/png" href="{{ asset('src/assets/images/logos/favicon.png') }}" />
+    <link rel="stylesheet" href="{{ asset('src/assets/css/styles.min.css') }}" />
 </head>
 <body>
     <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
@@ -18,7 +18,7 @@
                         <div class="card mb-0">
                             <div class="card-body">
                                 <a href="{{ url('/') }}" class="text-nowrap logo-img text-center d-block py-3 w-100">
-                                    <img src="{{ asset('spike-bootstrap-free-v2/src/assets/images/logos/logo.svg') }}" alt="Logo">
+                                    <img src="{{ asset('src/assets/images/logos/logo.svg') }}" alt="Logo">
                                 </a>
                                 <p class="text-center">Reset Your Password</p>
                                 <p class="text-center text-muted small mb-4">Enter your email address and we'll send you a link to reset your password.</p>
@@ -59,7 +59,7 @@
             </div>
         </div>
     </div>
-    <script src="{{ asset('spike-bootstrap-free-v2/src/assets/libs/jquery/dist/jquery.min.js') }}"></script>
-    <script src="{{ asset('spike-bootstrap-free-v2/src/assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('src/assets/libs/jquery/dist/jquery.min.js') }}"></script>
+    <script src="{{ asset('src/assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
 </body>
 </html>
