@@ -1,2 +1,8 @@
 *
 !.gitignore
+.env
+.env.*
+vendor/
+node_modules/
+storage/logs
+storage/framework
