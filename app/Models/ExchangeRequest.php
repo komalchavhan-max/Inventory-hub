@@ -18,7 +18,8 @@ class ExchangeRequest extends Model
         'damage_description',     
         'status',                   
         'request_date',             
-        'admin_approval_date'     
+        'admin_approval_date',
+        'admin_message'            
     ];
     protected $casts = [
         'has_damage' => 'boolean',

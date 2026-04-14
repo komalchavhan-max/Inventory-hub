@@ -43,7 +43,7 @@
                                 @foreach($availableEquipment as $item)
                                 <option value="{{ $item->id }}">
                                     {{ $item->name }} - {{ $item->serial_number }}
-                                    ({{ $item->category }})
+                                    ({{$item->category->name ?? 'Uncategorized'}})
                                 </option>
                                 @endforeach
                             </select>

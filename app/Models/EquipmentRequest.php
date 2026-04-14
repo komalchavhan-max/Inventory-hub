@@ -15,7 +15,8 @@ class EquipmentRequest extends Model
         'priority',        
         'status',            
         'request_reason',    
-        'admin_notes',       
+        'admin_notes',
+        'admin_message',       
         'approved_date'     
     ];
     protected $casts = [

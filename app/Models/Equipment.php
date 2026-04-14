@@ -48,4 +48,22 @@ class Equipment extends Model
     {
         return $this->belongsTo(Category::class);
     }
+    public function isArchived()
+    {
+        return $this->status === 'Archived';
+    }
+    public function archive()
+    {
+        $this->status = 'Archived';
+        $this->save();
+    }
+    public function restoreFromArchive()
+    {
+        $this->status = 'Available';
+        $this->save();
+    }
+    public function scopeActive($query)
+    {
+        return $query->where('status', '!=', 'Archived');
+    }
 }

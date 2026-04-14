@@ -81,7 +81,7 @@
                 <div class="card-body">
                     @if($myEquipment->count() > 0)
                     <div class="table-responsive">
-                        <table class="table">
+                        <table class="table" id="recentEquipmentTable">
                             <thead>
                                 <tr>
                                     <th>Equipment</th>
@@ -94,7 +94,7 @@
                                 <tr>
                                     <td>{{ $item->name }}</td>
                                     <td>{{ $item->serial_number }}</td>
-                                    <td>{{ $item->category }}</td>
+                                    <td>{{ $item->category->name ?? 'Uncategorized' }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -136,4 +136,16 @@
         </div>
     </div>
 </div>
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        $('#recentEquipmentTable').DataTable({
+            pageLength: 5,
+            ordering: true,
+            searching: true,
+            paging: true
+        });
+    });
+</script>
+@endpush
 @endsection

@@ -15,7 +15,7 @@ class DashboardController extends Controller
     public function index()
     {   
         $myEquipment = Equipment::where('assigned_to', Auth::id())->get();
-        
+        $recentEquipment = Equipment::with('category')->latest()->take(5)->get();
         $recentRequests = collect();
         $recentRequests = $recentRequests->concat(EquipmentRequest::where('user_id', Auth::id())->latest()->take(3)->get());
         $recentRequests = $recentRequests->concat(ExchangeRequest::where('user_id', Auth::id())->latest()->take(3)->get());
@@ -23,6 +23,6 @@ class DashboardController extends Controller
         $recentRequests = $recentRequests->concat(ReturnRequest::where('user_id', Auth::id())->latest()->take(3)->get());
         $recentRequests = $recentRequests->sortByDesc('created_at')->take(5);
         
-        return view('employee.dashboard.index', compact('myEquipment', 'recentRequests'));
+        return view('employee.dashboard.index', compact('myEquipment', 'recentEquipment', 'recentRequests'));
     }
 }

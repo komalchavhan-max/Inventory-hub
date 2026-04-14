@@ -72,7 +72,7 @@ class EquipmentController extends Controller
             'name' => 'required|min:3|max:255',
             'serial_number' => 'required|unique:equipment,serial_number,' . $id,
             'category_id' => 'required|exists:categories,id',
-            'status' => 'required|in:Available,Assigned,In-Repair',
+            'status' => 'required|in:Available,Assigned,In-Repair,Archived',
             'description' => 'nullable',
             'specifications' => 'nullable',
             'purchase_date' => 'nullable|date',
@@ -96,9 +96,20 @@ class EquipmentController extends Controller
     
     public function destroy($id)
     {
+        $equipment = Equipment::findOrFail($id); 
+        if ($equipment->assigned_to && $equipment->status != 'Archived') {
+            return redirect()->back()->with('error', 'Cannot archive equipment that is currently assigned.');
+        }  
+        $equipment->archive();  
+
+        return redirect()->route('admin.equipment.index')->with('success', 'Equipment archived. It will not be visible to employees.');
+    }
+
+    public function restore($id)
+    {
         $equipment = Equipment::findOrFail($id);
-        $equipment->delete();
+        $equipment->restoreFromArchive();
         
-        return redirect()->route('admin.equipment.index')->with('success', 'Equipment deleted successfully!');
+        return redirect()->route('admin.equipment.index')->with('success', 'Equipment restored successfully!');
     }
 }

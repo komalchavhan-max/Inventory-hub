@@ -45,20 +45,13 @@
                         <div class="mb-3">
                             <label class="form-label">How urgent is this?</label>
                             <select name="urgency" class="form-select">
-                                <option value="Critical">🔴 Critical - Work completely stopped</option>
-                                <option value="High">🟠 High - Major issue, affecting work</option>
-                                <option value="Medium">🟡 Medium - Issue exists but workable</option>
-                                <option value="Low">🟢 Low - Minor issue, can wait</option>
+                                <option value="Critical"> Critical - Work completely stopped</option>
+                                <option value="High"> High - Major issue, affecting work</option>
+                                <option value="Medium"> Medium - Issue exists but workable</option>
+                                <option value="Low"> Low - Minor issue, can wait</option>
                             </select>
                         </div>
-                        
-                        <!-- Location -->
-                        <div class="mb-3">
-                            <label class="form-label">Equipment Location</label>
-                            <input type="text" name="location" class="form-control" 
-                                placeholder="Example: Floor 3, Cubicle 42, IT Department">
-                        </div>
-                        
+                                 
                         <!-- Photos Available -->
                         <div class="mb-3">
                             <label class="form-label">Do you have photos of the issue?</label>

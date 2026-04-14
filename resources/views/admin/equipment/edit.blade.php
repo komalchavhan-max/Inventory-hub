@@ -43,6 +43,7 @@
                                 <option value="Available" {{ $equipment->status == 'Available' ? 'selected' : '' }}>Available</option>
                                 <option value="Assigned" {{ $equipment->status == 'Assigned' ? 'selected' : '' }}>Assigned</option>
                                 <option value="In-Repair" {{ $equipment->status == 'In-Repair' ? 'selected' : '' }}>In Repair</option>
+                                <option value="Archived" {{ $equipment->status == 'Archived' ? 'selected' : '' }}>Archived (Not Available)</option>
                             </select>
                         </div>
                         

@@ -17,7 +17,8 @@ class ReturnRequest extends Model
         'return_date',        
         'status',               
         'admin_verified',       
-        'admin_notes'           
+        'admin_notes',
+        'admin_message'           
     ];
     protected $casts = [
         'admin_verified' => 'boolean',

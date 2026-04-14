@@ -30,7 +30,7 @@
                     @endif
                     
                     <div class="table-responsive">
-                        <table class="table table-bordered">
+                        <table class="table table-bordered" id="categoriesTable">
                             <thead class="table-light">
                                 <tr>
                                     <th>ID</th>
@@ -92,4 +92,15 @@
         </div>
     </div>
 </div>
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        $('#categoriesTable').DataTable({
+            pageLength: 10,
+            order: [[0, 'asc']],
+            responsive: true
+        });
+    });
+</script>
+@endpush
 @endsection

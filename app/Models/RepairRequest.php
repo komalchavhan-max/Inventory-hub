@@ -16,7 +16,8 @@ class RepairRequest extends Model
         'location',             
         'photos_available',    
         'status',               
-        'admin_notes',          
+        'admin_notes',
+        'admin_message',          
         'request_date',         
         'completion_date'       
     ];

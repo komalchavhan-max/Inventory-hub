@@ -10,7 +10,6 @@
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
     <style>
         body {
             background: #f4f6f9;
@@ -116,7 +115,9 @@
             }
         }
     </style>
-    
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet">
     @stack('styles')
 </head>
 <body>
@@ -140,16 +141,16 @@
             </a>          
                     
             <div class="nav-small-cap mt-3">REQUESTS</div>
-            <a href="#" class="nav-link">
+            <a href="{{ route('admin.requests.equipment') }}" class="nav-link">
                 <i class="bi bi-inbox"></i> Equipment Requests
             </a>
-            <a href="#" class="nav-link">
+            <a href="{{ route('admin.requests.exchange') }}" class="nav-link">
                 <i class="bi bi-arrow-repeat"></i> Exchange Requests
             </a>
-            <a href="#" class="nav-link">
+            <a href="{{ route('admin.requests.repair') }}" class="nav-link">
                 <i class="bi bi-tools"></i> Repair Requests
             </a>
-            <a href="#" class="nav-link">
+            <a href="{{ route('admin.requests.return') }}" class="nav-link">
                 <i class="bi bi-arrow-return-left"></i> Return Requests
             </a>
             
@@ -213,7 +214,6 @@
         
         <!-- Page Content -->
         @yield('content')
-                <!-- Display Validation Errors -->
         @if($errors->any())
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <strong>Error!</strong> Please fix the following issues:
@@ -227,14 +227,17 @@
         @endif
     </div>
     
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Sidebar toggle for mobile
-        document.getElementById('sidebarToggle')?.addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('show');
-        });
-    </script>
+    <script src="{{ asset('src/assets/libs/jquery/dist/jquery.min.js') }}"></script>
+    <script src="{{ asset('src/assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('src/assets/js/sidebarmenu.js') }}"></script>
+    <script src="{{ asset('src/assets/js/app.min.js') }}"></script>
+    <script src="{{ asset('src/assets/libs/simplebar/dist/simplebar.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+        <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     @stack('scripts')
+    
 </body>
 </html>

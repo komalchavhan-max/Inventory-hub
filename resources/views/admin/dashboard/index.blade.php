@@ -68,6 +68,21 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
+                            <h6 class="text-muted mb-1">Archived</h6>
+                            <h3 class="mb-0 text-warning">{{ $archived ?? 0 }}</h3>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 rounded p-3">
+                            <iconify-icon icon="solar:user-line-duotone" class="fs-4 text-warning"></iconify-icon>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
                             <h6 class="text-muted mb-1">In Repair</h6>
                             <h3 class="mb-0 text-danger">{{ $inRepair ?? 0 }}</h3>
                         </div>
@@ -109,8 +124,10 @@
                                             <span class="badge bg-success">Available</span>
                                         @elseif($item->status == 'Assigned')
                                             <span class="badge bg-warning">Assigned</span>
-                                        @else
+                                        @elseif($item->status == 'In-Repair')
                                             <span class="badge bg-danger">In Repair</span>
+                                        @elseif($item->status == 'Archived')
+                                            <span class="badge bg-secondary">Archived</span>
                                         @endif
                                     </td>
                                 </tr>

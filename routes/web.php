@@ -29,6 +29,31 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('/categories', App\Http\Controllers\Admin\CategoryController::class); 
     Route::get('/categories/{slug}/equipment', [App\Http\Controllers\Admin\CategoryController::class, 'showEquipment'])->name('categories.equipment');
     Route::post('/equipment/{id}/assign', [App\Http\Controllers\Admin\EquipmentController::class, 'assign'])->name('equipment.assign');
+    Route::get('/requests/equipment', [App\Http\Controllers\Admin\EquipmentRequestController::class, 'index'])->name('requests.equipment');
+    Route::get('/requests/exchange', [App\Http\Controllers\Admin\ExchangeRequestController::class, 'index'])->name('requests.exchange');
+    Route::get('/requests/repair', [App\Http\Controllers\Admin\RepairRequestController::class, 'index'])->name('requests.repair');
+    Route::get('/requests/return', [App\Http\Controllers\Admin\ReturnRequestController::class, 'index'])->name('requests.return');
+    Route::post('/requests/equipment/{id}/approve', [App\Http\Controllers\Admin\EquipmentRequestController::class, 'approve'])->name('requests.equipment.approve');
+    Route::post('/requests/equipment/{id}/reject', [App\Http\Controllers\Admin\EquipmentRequestController::class, 'reject'])->name('requests.equipment.reject');
+    Route::post('/requests/exchange/{id}/approve', [App\Http\Controllers\Admin\ExchangeRequestController::class, 'approve'])->name('requests.exchange.approve');
+    Route::post('/requests/repair/{id}/approve', [App\Http\Controllers\Admin\RepairRequestController::class, 'approve'])->name('requests.repair.approve');
+    Route::post('/requests/return/{id}/approve', [App\Http\Controllers\Admin\ReturnRequestController::class, 'approve'])->name('requests.return.approve');
+    Route::post('/requests/equipment/{id}/reject', [App\Http\Controllers\Admin\EquipmentRequestController::class, 'reject'])->name('requests.equipment.reject');
+    Route::post('/requests/repair/{id}/complete', [App\Http\Controllers\Admin\RepairRequestController::class, 'complete'])->name('requests.repair.complete');
+    Route::post('/requests/return/{id}/complete', [App\Http\Controllers\Admin\ReturnRequestController::class, 'complete'])->name('requests.return.complete');
+    Route::get('/requests/exchange', [App\Http\Controllers\Admin\ExchangeRequestController::class, 'index'])->name('requests.exchange');
+    Route::post('/requests/exchange/{id}/approve', [App\Http\Controllers\Admin\ExchangeRequestController::class, 'approve'])->name('requests.exchange.approve');
+    Route::post('/requests/exchange/{id}/process', [App\Http\Controllers\Admin\ExchangeRequestController::class, 'process'])->name('requests.exchange.process');
+    Route::post('/requests/exchange/{id}/reject', [App\Http\Controllers\Admin\ExchangeRequestController::class, 'reject'])->name('requests.exchange.reject');
+    Route::get('/requests/repair', [App\Http\Controllers\Admin\RepairRequestController::class, 'index'])->name('requests.repair');
+    Route::post('/requests/repair/{id}/approve', [App\Http\Controllers\Admin\RepairRequestController::class, 'approve'])->name('requests.repair.approve');
+    Route::post('/requests/repair/{id}/complete', [App\Http\Controllers\Admin\RepairRequestController::class, 'complete'])->name('requests.repair.complete');
+    Route::post('/requests/repair/{id}/reject', [App\Http\Controllers\Admin\RepairRequestController::class, 'reject'])->name('requests.repair.reject');
+    Route::get('/requests/return', [App\Http\Controllers\Admin\ReturnRequestController::class, 'index'])->name('requests.return');
+    Route::post('/requests/return/{id}/approve', [App\Http\Controllers\Admin\ReturnRequestController::class, 'approve'])->name('requests.return.approve');
+    Route::post('/requests/return/{id}/complete', [App\Http\Controllers\Admin\ReturnRequestController::class, 'complete'])->name('requests.return.complete');
+    Route::post('/requests/return/{id}/reject', [App\Http\Controllers\Admin\ReturnRequestController::class, 'reject'])->name('requests.return.reject');
+    Route::post('/equipment/{id}/restore', [App\Http\Controllers\Admin\EquipmentController::class, 'restore'])->name('equipment.restore');
 });
 
 // ========== EMPLOYEE ROUTES ==========

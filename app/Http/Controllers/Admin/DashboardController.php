@@ -16,6 +16,7 @@ class DashboardController extends Controller
         $totalEquipment = Equipment::count();
         $available = Equipment::where('status', 'Available')->count();
         $assigned = Equipment::where('status', 'Assigned')->count();
+        $archived = Equipment::where('status', 'Archived')->count();
         $inRepair = Equipment::where('status', 'In-Repair')->count();
         
         $recentEquipment = Equipment::with('category')->latest()->take(5)->get();
@@ -26,7 +27,7 @@ class DashboardController extends Controller
         $pendingReturnRequests = ReturnRequest::where('status', 'Pending')->count();
         
         return view('admin.dashboard.index', compact(
-            'totalEquipment', 'available', 'assigned', 'inRepair',
+            'totalEquipment', 'available', 'assigned', 'inRepair','archived',
             'recentEquipment',
             'pendingEquipmentRequests', 'pendingExchangeRequests',
             'pendingRepairRequests', 'pendingReturnRequests'
