@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Role;
+use App\Http\Requests\RegisterRequest;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class RegisterController extends Controller
 {
@@ -15,13 +15,11 @@ class RegisterController extends Controller
 
     protected $redirectTo = '/dashboard';
 
-    protected function validator(array $data)
+    public function register(RegisterRequest $request)
     {
-        return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        $validated = $request->validated();
+        $this->create($validated);
+        return redirect()->route('login')->with('success', 'Registration successful! Please login with your credentials.');
     }
 
     protected function create(array $data)
@@ -38,6 +36,12 @@ class RegisterController extends Controller
     
     public function showRegistrationForm()
     {
+        if (auth()->check()) {
+            if (auth()->user()->isAdmin()) {
+                return redirect()->route('admin.dashboard');
+            }
+            return redirect()->route('employee.dashboard');
+        }
         return view('auth.register');
     }
 }

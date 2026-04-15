@@ -11,6 +11,40 @@
     <!-- DataTables CSS -->
     <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet">
+<style>
+    .left-sidebar {
+        top: 0 !important;
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    .page-wrapper {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    .brand-logo {
+        margin-top: 0 !important;
+        padding-top: 15px !important;
+    }
+
+    .body-wrapper-inner {
+        padding-top: 0 !important;
+    }
+
+    .container-fluid {
+        padding-top: 15px !important;
+    }
+
+    .app-header {
+        margin-bottom: 0 !important;
+        padding: 10px 0 !important;
+    }
+
+    .body-wrapper {
+        padding-top: 10 !important;
+    }
+</style>
 </head>
 <body>
     <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"

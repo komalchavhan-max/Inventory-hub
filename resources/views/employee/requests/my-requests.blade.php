@@ -118,6 +118,31 @@
                                 <a href="{{ route('employee.requests.equipment.form') }}" class="btn btn-primary">Request Equipment</a>
                             </div>
                             @endif
+                            <!-- Equipment Rejection Modals -->
+                            @foreach($equipmentRequests as $request)
+                                @if($request->status == 'Rejected' && $request->admin_message)
+                                    <div class="modal fade" id="eqRejectModal{{ $request->id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title">Request Rejected</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p><strong>Equipment:</strong> {{ $request->equipment->name ?? 'N/A' }}</p>
+                                                    <p><strong>Reason for Rejection:</strong></p>
+                                                    <div class="alert alert-danger">
+                                                        {{ $request->admin_message }}
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -189,6 +214,31 @@
                                 <a href="{{ route('employee.requests.exchange.form') }}" class="btn btn-warning">Request Exchange</a>
                             </div>
                             @endif
+                            <!-- Exchange Rejection Modals -->
+                            @foreach($exchangeRequests as $request)
+                                @if($request->status == 'Rejected' && $request->admin_message)
+                                    <div class="modal fade" id="exRejectModal{{ $request->id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title">Exchange Request Rejected</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p><strong>Requested Equipment:</strong> {{ $request->requestedEquipment->name ?? 'N/A' }}</p>
+                                                    <p><strong>Reason for Rejection:</strong></p>
+                                                    <div class="alert alert-danger">
+                                                        {{ $request->admin_message }}
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -260,6 +310,31 @@
                                 <a href="{{ route('employee.requests.repair.form') }}" class="btn btn-danger">Report Repair</a>
                             </div>
                             @endif
+                            <!-- Repair Rejection Modals -->
+                            @foreach($repairRequests as $request)
+                                @if($request->status == 'Rejected' && $request->admin_message)
+                                    <div class="modal fade" id="repRejectModal{{ $request->id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title">Repair Request Rejected</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p><strong>Equipment:</strong> {{ $request->equipment->name ?? 'N/A' }}</p>
+                                                    <p><strong>Reason for Rejection:</strong></p>
+                                                    <div class="alert alert-danger">
+                                                        {{ $request->admin_message }}
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -321,6 +396,31 @@
                                 <a href="{{ route('employee.requests.return.form') }}" class="btn btn-info">Return Equipment</a>
                             </div>
                             @endif
+                            <!-- Return Rejection Modals -->
+                            @foreach($returnRequests as $request)
+                                @if($request->status == 'Rejected' && $request->admin_message)
+                                    <div class="modal fade" id="retRejectModal{{ $request->id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title">Return Request Rejected</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p><strong>Equipment:</strong> {{ $request->equipment->name ?? 'N/A' }}</p>
+                                                    <p><strong>Reason for Rejection:</strong></p>
+                                                    <div class="alert alert-danger">
+                                                        {{ $request->admin_message }}
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
                         </div>
                     </div>
                 </div>

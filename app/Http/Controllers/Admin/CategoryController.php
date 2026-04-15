@@ -17,7 +17,8 @@ class CategoryController extends Controller
     
     public function create()
     {
-        return view('admin.categories.create');
+        $categories = Category::all();
+        return view('admin.equipment.create', compact('categories'));
     }
     
     public function store(Request $request)

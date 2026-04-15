@@ -153,7 +153,10 @@
             <a href="{{ route('admin.requests.return') }}" class="nav-link">
                 <i class="bi bi-arrow-return-left"></i> Return Requests
             </a>
-            
+            <a href="{{ route('admin.maintenance-logs.index') }}" class="nav-link">
+                <i class="bi bi-tools"></i> Maintenance Logs
+            </a>
+
             <div class="nav-small-cap mt-3">REPORTS</div>
             <a href="#" class="nav-link">
                 <i class="bi bi-file-bar-graph"></i> Inventory Report

@@ -38,7 +38,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/requests/exchange/{id}/approve', [App\Http\Controllers\Admin\ExchangeRequestController::class, 'approve'])->name('requests.exchange.approve');
     Route::post('/requests/repair/{id}/approve', [App\Http\Controllers\Admin\RepairRequestController::class, 'approve'])->name('requests.repair.approve');
     Route::post('/requests/return/{id}/approve', [App\Http\Controllers\Admin\ReturnRequestController::class, 'approve'])->name('requests.return.approve');
-    Route::post('/requests/equipment/{id}/reject', [App\Http\Controllers\Admin\EquipmentRequestController::class, 'reject'])->name('requests.equipment.reject');
     Route::post('/requests/repair/{id}/complete', [App\Http\Controllers\Admin\RepairRequestController::class, 'complete'])->name('requests.repair.complete');
     Route::post('/requests/return/{id}/complete', [App\Http\Controllers\Admin\ReturnRequestController::class, 'complete'])->name('requests.return.complete');
     Route::get('/requests/exchange', [App\Http\Controllers\Admin\ExchangeRequestController::class, 'index'])->name('requests.exchange');
@@ -54,6 +53,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/requests/return/{id}/complete', [App\Http\Controllers\Admin\ReturnRequestController::class, 'complete'])->name('requests.return.complete');
     Route::post('/requests/return/{id}/reject', [App\Http\Controllers\Admin\ReturnRequestController::class, 'reject'])->name('requests.return.reject');
     Route::post('/equipment/{id}/restore', [App\Http\Controllers\Admin\EquipmentController::class, 'restore'])->name('equipment.restore');
+    Route::get('/maintenance-logs', [App\Http\Controllers\Admin\MaintenanceLogController::class, 'index'])->name('maintenance-logs.index');
+Route::get('/maintenance-logs/{id}', [App\Http\Controllers\Admin\MaintenanceLogController::class, 'show'])->name('maintenance-logs.show');
 });
 
 // ========== EMPLOYEE ROUTES ==========
@@ -79,4 +80,11 @@ Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(functi
     
     // My Requests
     Route::get('/my-requests', [RequestController::class, 'myRequests'])->name('my-requests');
+
+    // Guest routes (only accessible when NOT logged in)
+    Route::middleware('guest')->group(function () {
+        Route::get('login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');
+        Route::get('register', [App\Http\Controllers\Auth\RegisterController::class, 'showRegistrationForm'])->name('register');
+        Route::get('password/reset', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    });
 });

@@ -42,6 +42,15 @@ class RepairRequestController extends Controller
         $repairRequest->status = 'Completed';
         $repairRequest->completion_date = now();
         $repairRequest->save();
+
+         MaintenanceLog::create([
+            'equipment_id' => $repairRequest->equipment_id,
+            'issue_description' => $repairRequest->issue_description,
+            'cost' => 0, // Admin can update later
+            'technician_name' => 'Pending',
+            'repair_date' => now()
+        ]);
+    
         
         $equipment = Equipment::find($repairRequest->equipment_id);   // Update equipment status back to available
         if ($equipment) {
