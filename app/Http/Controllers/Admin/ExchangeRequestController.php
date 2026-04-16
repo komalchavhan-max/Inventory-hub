@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ExchangeRequest;
 use App\Models\Equipment;
 use Illuminate\Http\Request;
+use App\Http\Requests\ExchangeRequestRejectRequest;
 
 class ExchangeRequestController extends Controller
 {
@@ -53,12 +54,8 @@ class ExchangeRequestController extends Controller
         return redirect()->back()->with('success', 'Exchange processed successfully!');
     }
     
-    public function reject(Request $httpRequest, $id)
+    public function reject(ExchangeRequestRejectRequest $request, $id)
     {
-        $httpRequest->validate([
-            'rejection_message' => 'required|string|min:5'
-        ]);
-        
         $exchangeRequest = ExchangeRequest::findOrFail($id);
         $exchangeRequest->status = 'Rejected';
         $exchangeRequest->admin_message = $httpRequest->rejection_message;

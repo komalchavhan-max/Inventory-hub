@@ -7,6 +7,7 @@ use App\Models\EquipmentRequest;
 use App\Models\Equipment;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use App\Http\Requests\EquipmentRequestRejectRequest;
 
 class EquipmentRequestController extends Controller
 {
@@ -40,15 +41,11 @@ class EquipmentRequestController extends Controller
         return redirect()->back()->with('success', 'Equipment request approved successfully!');
     }
     
-    public function reject(Request $httpRequest, $id)
+    public function reject(EquipmentRequestRejectRequest $request, $id)
     {
-        $httpRequest->validate([
-            'rejection_message' => 'required|string|min:5'
-        ]);
-        
         $equipmentRequest = EquipmentRequest::findOrFail($id);
         $equipmentRequest->status = 'Rejected';
-        $equipmentRequest->admin_message = $httpRequest->rejection_message;
+        $equipmentRequest->admin_message = $request->rejection_message;
         $equipmentRequest->save();
         
         return redirect()->back()->with('success', 'Equipment request rejected! Message sent to employee.');

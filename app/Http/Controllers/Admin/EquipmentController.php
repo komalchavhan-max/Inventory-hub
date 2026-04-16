@@ -7,6 +7,8 @@ use App\Models\Equipment;
 use App\Models\User;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Http\Requests\EquipmentStoreRequest;
+use App\Http\Requests\EquipmentUpdateRequest;
 
 class EquipmentController extends Controller
 {
@@ -23,18 +25,9 @@ class EquipmentController extends Controller
         return view('admin.equipment.create', compact('categories', 'users'));
     }
     
-    public function store(Request $request)
+    public function store(EquipmentStoreRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|min:3|max:255',
-            'serial_number' => 'required|unique:equipment,serial_number',
-            'category_id' => 'required|exists:categories,id',
-            'description' => 'nullable',
-            'specifications' => 'nullable',
-            'purchase_date' => 'nullable|date',
-            'warranty_until' => 'nullable|date',
-            'condition' => 'nullable|in:New,Good,Fair,Poor',
-        ]);
+        $validated = $request->validate();
 
         if (!empty($validated['specifications'])) {
             $decoded = json_decode($validated['specifications']);
@@ -64,22 +57,11 @@ class EquipmentController extends Controller
         return view('admin.equipment.edit', compact('equipment', 'users', 'categories'));
     }
     
-    public function update(Request $request, $id)
+    public function update(EquipmentUpdateRequest $request, $id)
     {
         $equipment = Equipment::findOrFail($id);
         
-        $validated = $request->validate([
-            'name' => 'required|min:3|max:255',
-            'serial_number' => 'required|unique:equipment,serial_number,' . $id,
-            'category_id' => 'required|exists:categories,id',
-            'status' => 'required|in:Available,Assigned,In-Repair,Archived',
-            'description' => 'nullable',
-            'specifications' => 'nullable',
-            'purchase_date' => 'nullable|date',
-            'warranty_until' => 'nullable|date',
-            'condition' => 'nullable|in:New,Good,Fair,Poor',
-            'assigned_to' => 'nullable|exists:users,id',
-        ]);
+       $validated = $request->validated();
         
         if (!empty($validated['specifications'])) {
             $decoded = json_decode($validated['specifications']);

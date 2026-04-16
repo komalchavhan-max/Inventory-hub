@@ -12,15 +12,15 @@ class LoginController extends Controller
 
     protected $redirectTo = '/dashboard';
 
-    public function redirectTo()
-    {
+    public function redirectTo() {
         if (auth()->user()->role && auth()->user()->role->name === 'admin') {
             return '/admin/dashboard';
         }
+
         return '/employee/dashboard';
     }
-     public function login(LoginRequest $request)
-    {
+
+    public function login(LoginRequest $request) {
         $credentials = $request->only('email', 'password');
         $remember = $request->boolean('remember');
 
@@ -30,6 +30,7 @@ class LoginController extends Controller
             if (auth()->user()->isAdmin()) {
                 return redirect()->route('admin.dashboard');
             }
+
             return redirect()->route('employee.dashboard');
         }
 
@@ -37,14 +38,15 @@ class LoginController extends Controller
             'email' => 'The provided credentials do not match our records.',
         ])->onlyInput('email');
     }
-    public function showLoginForm()
-    {
+
+    public function showLoginForm() {
         if (auth()->check()) {
             if (auth()->user()->isAdmin()) {
                 return redirect()->route('admin.dashboard');
             }
             return redirect()->route('employee.dashboard');
         }
+
         return view('auth.login');
     }
 

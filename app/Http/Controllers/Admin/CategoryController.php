@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Equipment;
 use Illuminate\Http\Request;
+use App\Http\Requests\CategoryStoreRequest;
+use App\Http\Requests\CategoryUpdateRequest;
 
 class CategoryController extends Controller
 {
@@ -21,15 +23,9 @@ class CategoryController extends Controller
         return view('admin.equipment.create', compact('categories'));
     }
     
-    public function store(Request $request)
+    public function store(CategoryStoreRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|unique:categories|min:2|max:50',
-            'description' => 'nullable|string',
-            'icon' => 'nullable|string',
-        ]);
-        
-        Category::create($validated);
+        Category::create($request->$validated());
         
         return redirect()->route('admin.categories.index')
             ->with('success', 'Category created successfully!');
@@ -41,17 +37,10 @@ class CategoryController extends Controller
         return view('admin.categories.edit', compact('category'));
     }
     
-    public function update(Request $request, $id)
+    public function update(CategoryUpdateRequest $request, $id)
     {
         $category = Category::findOrFail($id);
-        
-        $validated = $request->validate([
-            'name' => 'required|unique:categories,name,' . $id . '|min:2|max:50',
-            'description' => 'nullable|string',
-            'icon' => 'nullable|string',
-        ]);
-        
-        $category->update($validated);
+         $category->update($request->validated());
         
         return redirect()->route('admin.categories.index')
             ->with('success', 'Category updated successfully!');

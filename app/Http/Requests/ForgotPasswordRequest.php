@@ -8,7 +8,7 @@ class ForgotPasswordRequest extends FormRequest
 {
     public function authorize()
     {
-        return true; // Anyone can request password reset
+        return true;
     }
 
     public function rules()

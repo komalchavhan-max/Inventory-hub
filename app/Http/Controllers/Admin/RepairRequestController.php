@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\RepairRequest;
 use App\Models\Equipment;
 use App\Models\MaintenanceLog;
-use Illuminate\Http\Request;
+use App\Http\Requests\RepairRequestRejectRequest;
 
 class RepairRequestController extends Controller
 {
@@ -50,7 +50,6 @@ class RepairRequestController extends Controller
             'technician_name' => 'Pending',
             'repair_date' => now()
         ]);
-    
         
         $equipment = Equipment::find($repairRequest->equipment_id);   // Update equipment status back to available
         if ($equipment) {
@@ -61,12 +60,8 @@ class RepairRequestController extends Controller
         return redirect()->back()->with('success', 'Repair completed!');
     }
     
-    public function reject(Request $httpRequest, $id)
+    public function reject(RepairRequestRejectRequest $httpRequest, $id)
     {
-        $httpRequest->validate([
-            'rejection_message' => 'required|string|min:5'
-        ]);
-        
         $repairRequest = RepairRequest::findOrFail($id);
         $repairRequest->status = 'Rejected';
         $repairRequest->admin_message = $httpRequest->rejection_message;

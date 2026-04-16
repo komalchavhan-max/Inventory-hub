@@ -198,7 +198,7 @@
         $('#exchangeRequestsTable').DataTable({
             pageLength: 10,
             order: [[0, 'desc']],
-            responsive: true,
+            responsive: false,  
             columnDefs: [
                 { orderable: false, targets: [9] }
             ]

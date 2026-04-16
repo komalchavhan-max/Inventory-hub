@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ReturnRequest;
 use App\Models\Equipment;
-use Illuminate\Http\Request;
+use App\Http\Requests\ReturnRequestRejectRequest;
 
 class ReturnRequestController extends Controller
 {
@@ -45,12 +45,8 @@ class ReturnRequestController extends Controller
         return redirect()->back()->with('success', 'Return completed! Equipment is now available.');
     }
 
-    public function reject(Request $httpRequest, $id)
-    {
-        $httpRequest->validate([
-            'rejection_message' => 'required|string|min:5'
-        ]);
-        
+    public function reject(ReturnRequestRejectRequest $request, $id)
+    { 
         $returnRequest = ReturnRequest::findOrFail($id);
         $returnRequest->status = 'Rejected';
         $returnRequest->admin_message = $httpRequest->rejection_message;
