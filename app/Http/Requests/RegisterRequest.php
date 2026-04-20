@@ -6,13 +6,11 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class RegisterRequest extends FormRequest
 {
-    public function authorize()
-    {
+    public function authorize(){
         return true;
     }
 
-    public function rules()
-    {
+    public function rules(){
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -20,8 +18,7 @@ class RegisterRequest extends FormRequest
         ];
     }
 
-    public function messages()
-    {
+    public function messages(){
         return [
             'name.required' => 'Name is required',
             'email.required' => 'Email address is required',

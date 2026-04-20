@@ -6,8 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
-    {
+    public function up(){
         Schema::table('equipment', function (Blueprint $table) {
             $table->text('description')->nullable()->after('name');
             $table->json('specifications')->nullable()->after('description');
@@ -17,8 +16,7 @@ return new class extends Migration
         });
     }
 
-    public function down()
-    {
+    public function down(){
         Schema::table('equipment', function (Blueprint $table) {
             $table->dropColumn(['description', 'specifications', 'purchase_date', 'warranty_until', 'condition']);
         });

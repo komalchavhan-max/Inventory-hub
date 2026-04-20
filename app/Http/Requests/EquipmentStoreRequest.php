@@ -6,13 +6,11 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class EquipmentStoreRequest extends FormRequest
 {
-    public function authorize()
-    {
+    public function authorize(){
         return auth()->user() && auth()->user()->isAdmin();
     }
 
-    public function rules()
-    {
+    public function rules(){
         return [
             'name' => 'required|min:3|max:255',
             'serial_number' => 'required|unique:equipment,serial_number',
@@ -25,8 +23,7 @@ class EquipmentStoreRequest extends FormRequest
         ];
     }
 
-    public function messages()
-    {
+    public function messages(){
         return [
             'name.required' => 'Equipment name is required',
             'name.min' => 'Equipment name must be at least 3 characters',

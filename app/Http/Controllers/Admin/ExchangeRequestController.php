@@ -10,8 +10,7 @@ use App\Http\Requests\ExchangeRequestRejectRequest;
 
 class ExchangeRequestController extends Controller
 {
-    public function index()
-    {
+    public function index(){
         $requests = ExchangeRequest::with(['user', 'oldEquipment', 'requestedEquipment'])->latest()->paginate(10);
         $pendingCount = ExchangeRequest::where('status', 'Pending')->count();
         $approvedCount = ExchangeRequest::where('status', 'Approved')->count();
@@ -20,8 +19,7 @@ class ExchangeRequestController extends Controller
         return view('admin.requests.exchange', compact('requests', 'pendingCount', 'approvedCount', 'completedCount', 'rejectedCount'));
     }
     
-    public function approve($id)
-    {
+    public function approve($id){
         $exchangeRequest = ExchangeRequest::findOrFail($id);
         $exchangeRequest->status = 'Approved';
         $exchangeRequest->admin_approval_date = now();
@@ -30,8 +28,7 @@ class ExchangeRequestController extends Controller
         return redirect()->back()->with('success', 'Exchange request approved!');
     }
     
-    public function process($id)
-    {
+    public function process($id){
         $exchangeRequest = ExchangeRequest::findOrFail($id);
         
         $oldEquipment = Equipment::find($exchangeRequest->old_equipment_id);    // Return old equipment
@@ -54,8 +51,7 @@ class ExchangeRequestController extends Controller
         return redirect()->back()->with('success', 'Exchange processed successfully!');
     }
     
-    public function reject(ExchangeRequestRejectRequest $request, $id)
-    {
+    public function reject(ExchangeRequestRejectRequest $request, $id){
         $exchangeRequest = ExchangeRequest::findOrFail($id);
         $exchangeRequest->status = 'Rejected';
         $exchangeRequest->admin_message = $httpRequest->rejection_message;

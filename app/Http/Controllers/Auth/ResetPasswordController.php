@@ -11,8 +11,7 @@ class ResetPasswordController extends Controller
 
     protected $redirectTo = '/dashboard';
 
-     public function showResetForm($token = null)
-    {
+     public function showResetForm($token = null){
         return view('auth.reset-password')->with(
             ['token' => $token, 'email' => request()->email]
         );

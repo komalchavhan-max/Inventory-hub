@@ -72,8 +72,7 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function user(Request $request)
-    {
+    public function user(Request $request){
         $user = $request->user();
 
         if (!$user) {

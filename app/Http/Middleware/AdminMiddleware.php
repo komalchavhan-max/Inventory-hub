@@ -7,14 +7,12 @@ use Illuminate\Http\Request;
 
 class AdminMiddleware
 {
-    public function handle(Request $request, Closure $next)
-    {
+    public function handle(Request $request, Closure $next){
         if (!auth()->check()) {
             return redirect()->route('login');
         }
         
-        // Check using new role relationship
-        if (!auth()->user()->isAdmin()) {
+        if (!auth()->user()->isAdmin()) {         // Check using new role relationship
             abort(403, 'Unauthorized access. Admin only area.');
         }
         

@@ -11,8 +11,7 @@ use App\Http\Requests\EquipmentRequestRejectRequest;
 
 class EquipmentRequestController extends Controller
 {
-    public function index()
-    {
+    public function index(){
         $requests = EquipmentRequest::with(['user', 'equipment'])->latest()->paginate(10);
         $pendingCount = EquipmentRequest::where('status', 'Pending')->count();
         $approvedCount = EquipmentRequest::where('status', 'Approved')->count();
@@ -21,8 +20,7 @@ class EquipmentRequestController extends Controller
         return view('admin.requests.equipment', compact('requests', 'pendingCount', 'approvedCount', 'rejectedCount', 'fulfilledCount'));
     }
     
-    public function approve($id)
-    {
+    public function approve($id){
         $equipmentRequest = EquipmentRequest::findOrFail($id);
         $equipmentRequest->status = 'Approved';
         $equipmentRequest->approved_date = now();
@@ -41,8 +39,7 @@ class EquipmentRequestController extends Controller
         return redirect()->back()->with('success', 'Equipment request approved successfully!');
     }
     
-    public function reject(EquipmentRequestRejectRequest $request, $id)
-    {
+    public function reject(EquipmentRequestRejectRequest $request, $id){
         $equipmentRequest = EquipmentRequest::findOrFail($id);
         $equipmentRequest->status = 'Rejected';
         $equipmentRequest->admin_message = $request->rejection_message;
@@ -51,8 +48,7 @@ class EquipmentRequestController extends Controller
         return redirect()->back()->with('success', 'Equipment request rejected! Message sent to employee.');
     }
 
-    public function showRejectForm($id)
-    {
+    public function showRejectForm($id){
         $request = EquipmentRequest::findOrFail($id);
         return view('admin.requests.reject-modal', compact('request'));
     }

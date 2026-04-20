@@ -23,13 +23,11 @@ class Notification extends Model
         'updated_at' => 'datetime'
     ];
 
-    public function user(): BelongsTo
-    {
+    public function user(): BelongsTo{
         return $this->belongsTo(User::class);
     }
 
-    public function request()
-    {
+    public function request(){
         return match($this->type) {
             'equipment_request' => $this->belongsTo(EquipmentRequest::class, 'request_id'),
             'exchange_request' => $this->belongsTo(ExchangeRequest::class, 'request_id'),
@@ -39,25 +37,21 @@ class Notification extends Model
         };
     }
     
-    public function markAsRead(): void
-    {
+    public function markAsRead(): void{
         $this->is_read = true;
         $this->save();
     }
 
-    public function markAsUnread(): void
-    {
+    public function markAsUnread(): void{
         $this->is_read = false;
         $this->save();
     }
  
-    public function isRead(): bool
-    {
+    public function isRead(): bool{
         return $this->is_read;
     }
  
-    public static function createNotification($userId, $type, $requestId, $message, $status)
-    {
+    public static function createNotification($userId, $type, $requestId, $message, $status){
         return self::create([
             'user_id' => $userId,
             'type' => $type,
@@ -68,16 +62,14 @@ class Notification extends Model
         ]);
     }
  
-    public static function getUnreadForUser($userId)
-    {
+    public static function getUnreadForUser($userId){
         return self::where('user_id', $userId)
             ->where('is_read', false)
             ->orderBy('created_at', 'desc')
             ->get();
     }
 
-    public static function getAllForUser($userId, $limit = 20)
-    {
+    public static function getAllForUser($userId, $limit = 20){
         return self::where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->limit($limit)

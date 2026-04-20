@@ -9,8 +9,7 @@ use App\Http\Requests\ReturnRequestRejectRequest;
 
 class ReturnRequestController extends Controller
 {
-    public function index()
-    {
+    public function index(){
         $requests = ReturnRequest::with(['user', 'equipment'])->latest()->paginate(10);
         $pendingCount = ReturnRequest::where('status', 'Pending')->count();
         $approvedCount = ReturnRequest::where('status', 'Approved')->count();
@@ -19,8 +18,7 @@ class ReturnRequestController extends Controller
         return view('admin.requests.return', compact('requests', 'pendingCount', 'approvedCount', 'completedCount', 'rejectedCount'));
     }
     
-    public function approve($id)
-    {
+    public function approve($id){
         $request = ReturnRequest::findOrFail($id);
         $request->status = 'Approved';
         $request->save();
@@ -28,8 +26,7 @@ class ReturnRequestController extends Controller
         return redirect()->back()->with('success', 'Return request approved. Please verify equipment.');
     }
     
-    public function complete($id)
-    {
+    public function complete($id){
         $request = ReturnRequest::findOrFail($id);
         $request->status = 'Completed';
         $request->admin_verified = true;
@@ -45,8 +42,7 @@ class ReturnRequestController extends Controller
         return redirect()->back()->with('success', 'Return completed! Equipment is now available.');
     }
 
-    public function reject(ReturnRequestRejectRequest $request, $id)
-    { 
+    public function reject(ReturnRequestRejectRequest $request, $id){ 
         $returnRequest = ReturnRequest::findOrFail($id);
         $returnRequest->status = 'Rejected';
         $returnRequest->admin_message = $httpRequest->rejection_message;

@@ -12,8 +12,7 @@ use Illuminate\Support\Facades\Auth;
 
 class EquipmentController extends Controller
 {
-    public function index()
-    {
+    public function index(){
         $equipment = Equipment::where('status', '!=', 'Archived')->with('category')->get();
         return view('employee.equipment.index', compact('equipment'));
     }

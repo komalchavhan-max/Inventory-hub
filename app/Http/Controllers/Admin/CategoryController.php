@@ -11,34 +11,29 @@ use App\Http\Requests\CategoryUpdateRequest;
 
 class CategoryController extends Controller
 {
-    public function index()
-    {
+    public function index(){
         $categories = Category::withCount('equipment')->get();
         return view('admin.categories.index', compact('categories'));
     }
     
-    public function create()
-    {
+    public function create(){
         $categories = Category::all();
         return view('admin.equipment.create', compact('categories'));
     }
     
-    public function store(CategoryStoreRequest $request)
-    {
+    public function store(CategoryStoreRequest $request){
         Category::create($request->$validated());
         
         return redirect()->route('admin.categories.index')
             ->with('success', 'Category created successfully!');
     }
     
-    public function edit($id)
-    {
+    public function edit($id){
         $category = Category::findOrFail($id);
         return view('admin.categories.edit', compact('category'));
     }
     
-    public function update(CategoryUpdateRequest $request, $id)
-    {
+    public function update(CategoryUpdateRequest $request, $id){
         $category = Category::findOrFail($id);
          $category->update($request->validated());
         
@@ -46,8 +41,7 @@ class CategoryController extends Controller
             ->with('success', 'Category updated successfully!');
     }
     
-    public function destroy($id)
-    {
+    public function destroy($id){
         $category = Category::findOrFail($id);
         
         if ($category->equipment()->count() > 0) {
@@ -61,8 +55,7 @@ class CategoryController extends Controller
             ->with('success', 'Category deleted successfully!');
     }
     
-    public function showEquipment($slug)
-    {
+    public function showEquipment($slug){
         $category = Category::where('slug', $slug)->firstOrFail();
         $equipment = Equipment::where('category_id', $category->id)->with('assignedUser')->get();
         $categories = Category::withCount('equipment')->get();

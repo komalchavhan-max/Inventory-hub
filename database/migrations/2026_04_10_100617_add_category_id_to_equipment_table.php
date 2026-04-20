@@ -6,15 +6,13 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
-    {
+    public function up(){
         Schema::table('equipment', function (Blueprint $table) {
             $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
         });
     }
 
-    public function down()
-    {
+    public function down(){
         Schema::table('equipment', function (Blueprint $table) {
             $table->dropForeign(['category_id']);
             $table->dropColumn('category_id');

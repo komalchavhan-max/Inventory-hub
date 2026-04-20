@@ -12,21 +12,18 @@ use App\Http\Requests\EquipmentUpdateRequest;
 
 class EquipmentController extends Controller
 {
-    public function index()
-    {
+    public function index(){
         $equipment = Equipment::with('assignedUser', 'category')->get();
         return view('admin.equipment.index', compact('equipment'));
     }
     
-    public function create()
-    {
+    public function create(){
         $categories = Category::all();
         $users = User::all();
         return view('admin.equipment.create', compact('categories', 'users'));
     }
     
-    public function store(EquipmentStoreRequest $request)
-    {
+    public function store(EquipmentStoreRequest $request){
         $validated = $request->validate();
 
         if (!empty($validated['specifications'])) {
@@ -43,22 +40,19 @@ class EquipmentController extends Controller
         return redirect()->route('admin.equipment.index')->with('success', 'Equipment added successfully!');
     }
     
-    public function show($id)
-    {
+    public function show($id){
         $equipment = Equipment::with('assignedUser', 'category')->findOrFail($id);
         return view('admin.equipment.show', compact('equipment'));
     }
     
-    public function edit($id)
-    {
+    public function edit($id){
         $equipment = Equipment::findOrFail($id);
         $users = User::all();
         $categories = Category::all();
         return view('admin.equipment.edit', compact('equipment', 'users', 'categories'));
     }
     
-    public function update(EquipmentUpdateRequest $request, $id)
-    {
+    public function update(EquipmentUpdateRequest $request, $id){
         $equipment = Equipment::findOrFail($id);
         
        $validated = $request->validated();
@@ -76,8 +70,7 @@ class EquipmentController extends Controller
         return redirect()->route('admin.equipment.index')->with('success', 'Equipment updated successfully!');
     }
     
-    public function destroy($id)
-    {
+    public function destroy($id){
         $equipment = Equipment::findOrFail($id); 
         if ($equipment->assigned_to && $equipment->status != 'Archived') {
             return redirect()->back()->with('error', 'Cannot archive equipment that is currently assigned.');
@@ -87,8 +80,7 @@ class EquipmentController extends Controller
         return redirect()->route('admin.equipment.index')->with('success', 'Equipment archived. It will not be visible to employees.');
     }
 
-    public function restore($id)
-    {
+    public function restore($id){
         $equipment = Equipment::findOrFail($id);
         $equipment->restoreFromArchive();
         

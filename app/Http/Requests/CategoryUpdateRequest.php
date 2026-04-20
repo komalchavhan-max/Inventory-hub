@@ -6,13 +6,11 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CategoryUpdateRequest extends FormRequest
 {
-    public function authorize()
-    {
+    public function authorize(){
         return auth()->user() && auth()->user()->isAdmin();
     }
 
-    public function rules()
-    {
+    public function rules(){
         $id = $this->route('category');
         
         return [
@@ -22,8 +20,7 @@ class CategoryUpdateRequest extends FormRequest
         ];
     }
 
-    public function messages()
-    {
+    public function messages(){
         return [
             'name.required' => 'Category name is required',
             'name.unique' => 'This category already exists',

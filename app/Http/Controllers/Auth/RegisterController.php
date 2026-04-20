@@ -15,15 +15,13 @@ class RegisterController extends Controller
 
     protected $redirectTo = '/dashboard';
 
-    public function register(RegisterRequest $request)
-    {
+    public function register(RegisterRequest $request){
         $validated = $request->validated();
         $this->create($validated);
         return redirect()->route('login')->with('success', 'Registration successful! Please login with your credentials.');
     }
 
-    protected function create(array $data)
-    {
+    protected function create(array $data){
         $employeeRole = \App\Models\Role::where('name', 'employee')->first();
         
         return User::create([
@@ -34,8 +32,7 @@ class RegisterController extends Controller
         ]);
     }
     
-    public function showRegistrationForm()
-    {
+    public function showRegistrationForm(){
         if (auth()->check()) {
             if (auth()->user()->isAdmin()) {
                 return redirect()->route('admin.dashboard');

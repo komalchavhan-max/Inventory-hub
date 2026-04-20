@@ -11,8 +11,7 @@ class ForgotPasswordController extends Controller
 {
     use SendsPasswordResetEmails;
 
-    public function showLinkRequestForm()
-    {
+    public function showLinkRequestForm(){
         if (auth()->check()) {
             if (auth()->user()->isAdmin()) {
                 return redirect()->route('admin.dashboard');
@@ -22,8 +21,7 @@ class ForgotPasswordController extends Controller
         return view('auth.forgot-password');
     }
 
-    public function sendResetLinkEmail(ForgotPasswordRequest $request)
-    {
+    public function sendResetLinkEmail(ForgotPasswordRequest $request){
         $response = Password::sendResetLink(
             $request->only('email')
         );

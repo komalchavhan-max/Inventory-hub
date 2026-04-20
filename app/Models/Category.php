@@ -10,13 +10,11 @@ class Category extends Model
         'name', 'slug', 'description', 'icon'
     ];
     
-    public function equipment()
-    {
+    public function equipment(){
         return $this->hasMany(Equipment::class);
     }
     
-    protected static function boot()
-    {
+    protected static function boot(){
         parent::boot();
         
         static::creating(function ($category) {

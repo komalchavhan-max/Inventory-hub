@@ -11,8 +11,7 @@ use App\Models\ReturnRequest;
 
 class DashboardController extends Controller
 {
-    public function index()
-    {
+    public function index(){
         $totalEquipment = Equipment::count();
         $available = Equipment::where('status', 'Available')->count();
         $assigned = Equipment::where('status', 'Assigned')->count();

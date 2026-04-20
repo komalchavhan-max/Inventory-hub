@@ -12,8 +12,7 @@ class MaintenanceLog extends Model
         'repair_date' => 'date',
     ];
     
-    public function equipment() 
-    {
+    public function equipment() {
         return $this->belongsTo(Equipment::class);
     }
 }

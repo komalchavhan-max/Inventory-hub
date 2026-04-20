@@ -13,14 +13,12 @@ use Illuminate\Support\Facades\Auth;
 
 class RequestController extends Controller
 {
-    public function equipmentRequestForm()
-    {
+    public function equipmentRequestForm(){
         $availableEquipment = Equipment::where('status', 'Available')->get();
         return view('employee.requests.equipment-request', compact('availableEquipment'));
     }
     
-    public function storeEquipmentRequest(Request $request)
-    {
+    public function storeEquipmentRequest(Request $request){
         $validated = $request->validate([
             'equipment_id' => 'required|exists:equipment,id',
             'priority' => 'required|in:Urgent,Normal,Low',
@@ -40,15 +38,13 @@ class RequestController extends Controller
             ->with('success', 'Equipment request submitted successfully!');
     }
     
-    public function exchangeRequestForm()
-    {
+    public function exchangeRequestForm(){
         $myEquipment = Equipment::where('assigned_to', Auth::id())->get();
         $availableEquipment = Equipment::where('status', 'Available')->get();
         return view('employee.requests.exchange-request', compact('myEquipment', 'availableEquipment'));
     }
     
-    public function storeExchangeRequest(Request $request)
-    {
+    public function storeExchangeRequest(Request $request){
         $validated = $request->validate([
             'old_equipment_id' => 'required|exists:equipment,id',
             'requested_equipment_id' => 'required|exists:equipment,id',
@@ -74,13 +70,12 @@ class RequestController extends Controller
             ->with('success', 'Exchange request submitted successfully!');
     }
     
-    public function repairRequestForm()
-    {
+    public function repairRequestForm(){
         $myEquipment = Equipment::where('assigned_to', Auth::id())->get();
         return view('employee.requests.repair-request', compact('myEquipment'));
     }
-    public function storeRepairRequest(Request $request)
-    {
+
+    public function storeRepairRequest(Request $request){
         $validated = $request->validate([
             'equipment_id' => 'required|exists:equipment,id',
             'issue_description' => 'required|min:10',
@@ -104,14 +99,12 @@ class RequestController extends Controller
             ->with('success', 'Repair request submitted. Admin will review it.');
     }
 
-    public function returnRequestForm()
-    {
+    public function returnRequestForm(){
         $myEquipment = Equipment::where('assigned_to', Auth::id())->get();
         return view('employee.requests.return-request', compact('myEquipment'));
     }
 
-    public function storeReturnRequest(Request $request)
-    {
+    public function storeReturnRequest(Request $request){
         $validated = $request->validate([
             'equipment_id' => 'required|exists:equipment,id',
             'return_reason' => 'required|in:Leaving Company,Exchange,Broken,Upgrade,Other',
@@ -132,8 +125,8 @@ class RequestController extends Controller
         return redirect()->route('employee.dashboard')
             ->with('success', 'Return request submitted. Please wait for admin approval.');
     }
-    public function myRequests()
-    {
+
+    public function myRequests(){
         $equipmentRequests = EquipmentRequest::where('user_id', Auth::id())->get();
         $exchangeRequests = ExchangeRequest::where('user_id', Auth::id())->get();
         $repairRequests = RepairRequest::where('user_id', Auth::id())->get();

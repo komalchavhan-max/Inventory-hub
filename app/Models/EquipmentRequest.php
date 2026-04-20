@@ -25,42 +25,41 @@ class EquipmentRequest extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
     ];
-    public function user(): BelongsTo
-    {
+
+    public function user(): BelongsTo{
         return $this->belongsTo(User::class);
     }
 
-    public function equipment(): BelongsTo
-    {
+    public function equipment(): BelongsTo{
         return $this->belongsTo(Equipment::class);
     }
-    public function isPending(): bool
-    {
+
+    public function isPending(): bool{
         return $this->status === 'Pending';
     }
-    public function isApproved(): bool
-    {
+
+    public function isApproved(): bool{
         return $this->status === 'Approved';
     }
-    public function approve(): void
-    {
+
+    public function approve(): void{
         $this->status = 'Approved';
         $this->approved_date = now();
         $this->save();
     }
-    public function reject(string $notes = null): void
-    {
+
+    public function reject(string $notes = null): void{
         $this->status = 'Rejected';
         $this->admin_notes = $notes;
         $this->save();
     }
-    public function fulfill(): void
-    {
+
+    public function fulfill(): void{
         $this->status = 'Fulfilled';
         $this->save();
     }
-    public function getPriorityColor(): string
-    {
+
+    public function getPriorityColor(): string{
         return match($this->priority) {
             'Urgent' => 'danger',
             'Normal' => 'warning',
@@ -68,8 +67,8 @@ class EquipmentRequest extends Model
             default => 'secondary'
         };
     }
-    public function getStatusColor(): string
-    {
+    
+    public function getStatusColor(): string{
         return match($this->status) {
             'Pending' => 'warning',
             'Approved' => 'info',

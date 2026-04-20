@@ -27,29 +27,24 @@ class ReturnRequest extends Model
         'updated_at' => 'datetime'
     ];
 
-    public function user(): BelongsTo
-    {
+    public function user(): BelongsTo{
         return $this->belongsTo(User::class);
     }
 
-    public function equipment(): BelongsTo
-    {
+    public function equipment(): BelongsTo{
         return $this->belongsTo(Equipment::class);
     }
 
-    public function isPending(): bool
-    {
+    public function isPending(): bool{
         return $this->status === 'Pending';
     }
 
-    public function approve(): void
-    {
+    public function approve(): void{
         $this->status = 'Approved';
         $this->save();
     }
 
-    public function complete(): void
-    {
+    public function complete(): void{
         $this->status = 'Completed';
         $this->admin_verified = true;
         $this->save();
@@ -61,15 +56,13 @@ class ReturnRequest extends Model
         $equipment->save();
     }
 
-    public function reject(string $reason = null): void
-    {
+    public function reject(string $reason = null): void{
         $this->status = 'Rejected';
         $this->admin_notes = $reason;
         $this->save();
     }
 
-    public function getReturnReasonLabel(): string
-    {
+    public function getReturnReasonLabel(): string{
         return match($this->return_reason) {
             'Leaving Company' => '📤 Leaving Company',
             'Exchange' => '🔄 Exchange',
@@ -80,8 +73,7 @@ class ReturnRequest extends Model
         };
     }
 
-    public function getStatusColor(): string
-    {
+    public function getStatusColor(): string{
         return match($this->status) {
             'Pending' => 'warning',
             'Approved' => 'info',

@@ -13,13 +13,12 @@ use Illuminate\Support\Facades\Auth;
 
 class RequestManagementController extends Controller
 {
-    public function __construct()
-    {
+    public function __construct(){
         $this->middleware('auth');
         $this->middleware('admin');
     }
-    public function pendingRequests()
-    {
+
+    public function pendingRequests(){
         $equipmentRequests = EquipmentRequest::where('status', 'Pending')->get();
         $exchangeRequests = ExchangeRequest::where('status', 'Pending')->get();
         $repairRequests = RepairRequest::where('status', 'Pending')->get();
@@ -30,8 +29,7 @@ class RequestManagementController extends Controller
         ));
     }
     
-    public function approveEquipmentRequest($id)
-    {
+    public function approveEquipmentRequest($id){
         $request = EquipmentRequest::findOrFail($id);
         $request->approve();
         
@@ -47,8 +45,7 @@ class RequestManagementController extends Controller
         return redirect()->back()->with('success', 'Request approved successfully');
     }
     
-    public function rejectEquipmentRequest(Request $request, $id)
-    {
+    public function rejectEquipmentRequest(Request $request, $id){
         $equipmentRequest = EquipmentRequest::findOrFail($id);
         $equipmentRequest->reject($request->rejection_reason);
         
@@ -64,10 +61,9 @@ class RequestManagementController extends Controller
         return redirect()->back()->with('success', 'Request rejected');
     }
     
-    public function approveExchangeRequest($id)
-    {
+    public function approveExchangeRequest($id){
         $request = ExchangeRequest::findOrFail($id);
-        $request->approve(); // This will auto-process the exchange
+        $request->approve();                 // This will auto-process the exchange
         
         Notification::create([
             'user_id' => $request->user_id,
@@ -81,8 +77,7 @@ class RequestManagementController extends Controller
         return redirect()->back()->with('success', 'Exchange request approved and processed');
     }
     
-    public function approveRepairRequest($id)
-    {
+    public function approveRepairRequest($id){
         $request = RepairRequest::findOrFail($id);
         $request->approve();
         
@@ -98,8 +93,7 @@ class RequestManagementController extends Controller
         return redirect()->back()->with('success', 'Repair request approved');
     }
     
-    public function completeRepair($id)
-    {
+    public function completeRepair($id){
         $request = RepairRequest::findOrFail($id);
         $request->complete();
         
@@ -115,8 +109,7 @@ class RequestManagementController extends Controller
         return redirect()->back()->with('success', 'Repair marked as complete');
     }
     
-    public function approveReturnRequest($id)
-    {
+    public function approveReturnRequest($id){
         $request = ReturnRequest::findOrFail($id);
         $request->approve();
         
@@ -132,8 +125,7 @@ class RequestManagementController extends Controller
         return redirect()->back()->with('success', 'Return request approved');
     }
     
-    public function completeReturn($id)
-    {
+    public function completeReturn($id){
         $request = ReturnRequest::findOrFail($id);
         $request->complete();
         

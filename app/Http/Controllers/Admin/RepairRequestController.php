@@ -10,8 +10,7 @@ use App\Http\Requests\RepairRequestRejectRequest;
 
 class RepairRequestController extends Controller
 {
-    public function index()
-    {
+    public function index(){
         $requests = RepairRequest::with(['user', 'equipment'])->latest()->paginate(10);
         $pendingCount = RepairRequest::where('status', 'Pending')->count();
         $approvedCount = RepairRequest::where('status', 'Approved')->count();
@@ -20,8 +19,7 @@ class RepairRequestController extends Controller
         return view('admin.requests.repair', compact('requests', 'pendingCount', 'approvedCount', 'completedCount', 'rejectedCount'));
     }
     
-    public function approve($id)
-    {
+    public function approve($id){
         $request = RepairRequest::findOrFail($id);
         $request->status = 'Approved';
         $request->save();
@@ -36,8 +34,7 @@ class RepairRequestController extends Controller
         return redirect()->back()->with('success', 'Repair request approved!');
     }
     
-    public function complete($id)
-    {
+    public function complete($id){
         $repairRequest = RepairRequest::findOrFail($id);
         $repairRequest->status = 'Completed';
         $repairRequest->completion_date = now();
@@ -60,8 +57,7 @@ class RepairRequestController extends Controller
         return redirect()->back()->with('success', 'Repair completed!');
     }
     
-    public function reject(RepairRequestRejectRequest $httpRequest, $id)
-    {
+    public function reject(RepairRequestRejectRequest $httpRequest, $id){
         $repairRequest = RepairRequest::findOrFail($id);
         $repairRequest->status = 'Rejected';
         $repairRequest->admin_message = $httpRequest->rejection_message;

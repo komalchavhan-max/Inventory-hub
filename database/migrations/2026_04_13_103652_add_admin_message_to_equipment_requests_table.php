@@ -6,8 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
-    {
+    public function up(){
         Schema::table('equipment_requests', function (Blueprint $table) {
             $table->text('admin_message')->nullable()->after('admin_notes');
         });
@@ -25,8 +24,7 @@ return new class extends Migration
         });
     }
 
-    public function down()
-    {
+    public function down(){
         Schema::table('equipment_requests', function (Blueprint $table) {
             $table->dropColumn('admin_message');
         });

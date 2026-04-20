@@ -6,13 +6,11 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class EquipmentUpdateRequest extends FormRequest
 {
-    public function authorize()
-    {
+    public function authorize(){
         return auth()->user() && auth()->user()->isAdmin();
     }
 
-    public function rules()
-    {
+    public function rules(){
         $id = $this->route('equipment');
         
         return [
@@ -29,8 +27,7 @@ class EquipmentUpdateRequest extends FormRequest
         ];
     }
 
-    public function messages()
-    {
+    public function messages(){
         return [
             'name.required' => 'Equipment name is required',
             'serial_number.required' => 'Serial number is required',

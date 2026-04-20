@@ -12,58 +12,58 @@ class Equipment extends Model
         'category_id', 'purchase_date', 'warranty_until', 'status',
         'condition', 'assigned_to'
     ];
-    public function maintenanceLogs()
-    {
+
+    public function maintenanceLogs(){
         return $this->hasMany(MaintenanceLog::class);
     }
-    public function assignedUser()
-    {
+
+    public function assignedUser(){
         return $this->belongsTo(User::class, 'assigned_to');
     }
-    public function isAvailable()
-    {
+
+    public function isAvailable(){
         return $this->status === 'Available';
     }
-    public function equipmentRequests()
-    {
+
+    public function equipmentRequests(){
         return $this->hasMany(EquipmentRequest::class);
     }
-    public function exchangeRequestsAsOld()
-    {
+
+    public function exchangeRequestsAsOld(){
         return $this->hasMany(ExchangeRequest::class, 'old_equipment_id');
     }
-    public function exchangeRequestsAsNew()
-    {
+
+    public function exchangeRequestsAsNew(){
         return $this->hasMany(ExchangeRequest::class, 'requested_equipment_id');
     }
-    public function repairRequests()
-    {
+
+    public function repairRequests(){
         return $this->hasMany(RepairRequest::class);
     }
-    public function returnRequests()
-    {
+
+    public function returnRequests(){
         return $this->hasMany(ReturnRequest::class);
     }
-    public function category()
-    {
+
+    public function category(){
         return $this->belongsTo(Category::class);
     }
-    public function isArchived()
-    {
+
+    public function isArchived(){
         return $this->status === 'Archived';
     }
-    public function archive()
-    {
+
+    public function archive(){
         $this->status = 'Archived';
         $this->save();
     }
-    public function restoreFromArchive()
-    {
+
+    public function restoreFromArchive(){
         $this->status = 'Available';
         $this->save();
     }
-    public function scopeActive($query)
-    {
+
+    public function scopeActive($query){
         return $query->where('status', '!=', 'Archived');
     }
 }

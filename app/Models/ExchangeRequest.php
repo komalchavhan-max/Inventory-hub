@@ -28,35 +28,35 @@ class ExchangeRequest extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
     ];
-    public function user(): BelongsTo
-    {
+    
+    public function user(): BelongsTo{
         return $this->belongsTo(User::class);
     }
-    public function oldEquipment(): BelongsTo
-    {
+
+    public function oldEquipment(): BelongsTo{
         return $this->belongsTo(Equipment::class, 'old_equipment_id');
     }
-    public function requestedEquipment(): BelongsTo
-    {
+
+    public function requestedEquipment(): BelongsTo{
         return $this->belongsTo(Equipment::class, 'requested_equipment_id');
     }
-    public function hasDamage(): bool
-    {
+
+    public function hasDamage(): bool{
         return $this->has_damage;
     }
-    public function isPending(): bool
-    {
+
+    public function isPending(): bool{
         return $this->status === 'Pending';
     }
-    public function approve(): void
-    {
+
+    public function approve(): void{
         $this->status = 'Approved';
         $this->admin_approval_date = now();
         $this->save();
         $this->processExchange(); 
     }
-    public function processExchange(): void  
-    { 
+
+    public function processExchange(): void  { 
         $oldEquipment = $this->oldEquipment;  
         $oldEquipment->assigned_to = null;
         $oldEquipment->status = 'Available';
@@ -68,13 +68,13 @@ class ExchangeRequest extends Model
         $this->status = 'Completed'; 
         $this->save();
     }
-    public function reject(string $reason = null): void  
-    {
+
+    public function reject(string $reason = null): void  {
         $this->status = 'Rejected';
         $this->save();
     }
-    public function getStatusColor(): string  
-    {
+
+    public function getStatusColor(): string  {
         return match($this->status) {
             'Pending' => 'warning',
             'Approved' => 'info',

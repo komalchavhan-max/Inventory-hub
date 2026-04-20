@@ -5,8 +5,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
-    {
+    public function up(){
         Schema::create('maintenance_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('equipment_id')->constrained('equipment')->onDelete('cascade');
@@ -18,8 +17,7 @@ return new class extends Migration
         });
     }
 
-    public function down()
-    {
+    public function down(){
         Schema::dropIfExists('maintenance_logs');
     }
 };
