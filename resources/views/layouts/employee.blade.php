@@ -127,13 +127,13 @@
                                 <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
                                     <li class="nav-item dropdown">
                                         <a class="nav-link" href="javascript:void(0)" id="drop2" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <img src="{{ asset('src/assets/images/profile/user1.jpg') }}" alt="" width="35" height="35" class="rounded-circle">
+                                            <img src="{{ asset('spike-bootstrap-free-v2/src/assets/images/profile/user1.jpg') }}" alt="" width="35" height="35" class="rounded-circle">
                                             <span class="ms-2 d-none d-sm-inline">{{ Auth::user()->name }}</span>
                                         </a>
                                         <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up" aria-labelledby="drop2">
-                                            <div class="message-body">
+                                            <div class="message-body">                                            
                                                 <a class="dropdown-item" href="{{ route('logout') }}" 
-                                                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">           
                                                     <i class="ti ti-logout fs-6"></i> Logout
                                                 </a>
                                                 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
@@ -141,13 +141,13 @@
                                                 </form>
                                             </div>
                                         </div>
+                                        @include('layouts.partials.notifications')
                                     </li>
                                 </ul>
                             </div>
                         </nav>
                     </header>
                     <!-- Header End -->
-                    
                     <!-- Page Content -->
                     @yield('content')
                     
@@ -166,6 +166,117 @@
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <!-- Notification Scripts -->
+    <script>
+        function loadNotifications() {                    // Function to load notifications
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch('/notifications/fetch', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('notificationList');
+                const countSpan = document.getElementById('notificationCount');
+                
+                if (!container) return;
+                
+                if (data.notifications && data.notifications.length === 0) {
+                    container.innerHTML = '<div class="text-center py-3 text-muted">No notifications</div>';
+                    if (countSpan) countSpan.style.display = 'none';
+                    return;
+                }
+                
+                let html = '';
+                (data.notifications || []).forEach(notif => {
+                    let statusClass = notif.status === 'Approved' ? 'success' : (notif.status === 'Rejected' ? 'danger' : 'info');
+                    html += `
+                        <div class="notification-item ${notif.is_read ? '' : 'unread'}" data-id="${notif.id}">
+                            <div class="d-flex justify-content-between">
+                                <div class="notification-message">${escapeHtml(notif.message)}</div>
+                                <span class="badge bg-${statusClass}">${notif.status}</span>
+                            </div>
+                            <div class="notification-time">${notif.created_at || 'Just now'}</div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+                
+                if (data.unread_count > 0 && countSpan) {
+                    countSpan.textContent = data.unread_count > 9 ? '9+' : data.unread_count;
+                    countSpan.style.display = 'inline-block';
+                } else if (countSpan) {
+                    countSpan.style.display = 'none';
+                }
+            })
+            .catch(error => console.error('Error loading notifications:', error));
+        }
+        
+        function markAsRead(id) {             // Function to mark notification as read
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch('/notifications/mark-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({id: id})
+            })
+            .then(response => response.json())
+            .then(() => loadNotifications());
+        }
+        
+        function markAllRead() {              // Function to mark all as read
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch('/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(() => loadNotifications());
+        }
+        
+        function escapeHtml(text) {            // Escape HTML to prevent XSS
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {             // Initialize when page loads
+            loadNotifications();
+            
+            const markAllBtn = document.getElementById('markAllRead');          // Mark all as read button
+            if (markAllBtn) {
+                markAllBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    markAllRead();
+                });
+            }
+
+            document.addEventListener('click', function(e) {                // Handle notification click
+                const item = e.target.closest('.notification-item');
+                if (item && item.classList.contains('unread')) {
+                    const id = item.dataset.id;
+                    if (id) markAsRead(id);
+                }
+            });
+        });
+        
+        setInterval(loadNotifications, 30000);           // Refresh every 30 seconds
+    </script>
     @stack('scripts')
 </body>
 </html>

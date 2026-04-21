@@ -187,11 +187,12 @@
                     <img src="{{ asset('src/assets/images/profile/user1.jpg') }}" alt="" width="30" height="30" class="rounded-circle me-2">
                     {{ Auth::user()->name }}
                 </button>
+ 
                 <ul class="dropdown-menu dropdown-menu-end">
+                     @include('layouts.partials.notifications')
                     <li><a class="dropdown-item" href="#">My Profile</a></li>
                     <li><a class="dropdown-item" href="#">Settings</a></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li>
                         <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                             Logout
                         </a>

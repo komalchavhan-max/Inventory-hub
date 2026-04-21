@@ -75,4 +75,8 @@ class Notification extends Model
             ->limit($limit)
             ->get();
     }
+
+    public function scopeUnread($query){
+        return $query->where('is_read', false);
+    }
 }

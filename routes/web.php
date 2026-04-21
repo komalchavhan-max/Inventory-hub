@@ -40,21 +40,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/requests/return/{id}/approve', [App\Http\Controllers\Admin\ReturnRequestController::class, 'approve'])->name('requests.return.approve');
     Route::post('/requests/repair/{id}/complete', [App\Http\Controllers\Admin\RepairRequestController::class, 'complete'])->name('requests.repair.complete');
     Route::post('/requests/return/{id}/complete', [App\Http\Controllers\Admin\ReturnRequestController::class, 'complete'])->name('requests.return.complete');
-    Route::get('/requests/exchange', [App\Http\Controllers\Admin\ExchangeRequestController::class, 'index'])->name('requests.exchange');
-    Route::post('/requests/exchange/{id}/approve', [App\Http\Controllers\Admin\ExchangeRequestController::class, 'approve'])->name('requests.exchange.approve');
     Route::post('/requests/exchange/{id}/process', [App\Http\Controllers\Admin\ExchangeRequestController::class, 'process'])->name('requests.exchange.process');
     Route::post('/requests/exchange/{id}/reject', [App\Http\Controllers\Admin\ExchangeRequestController::class, 'reject'])->name('requests.exchange.reject');
-    Route::get('/requests/repair', [App\Http\Controllers\Admin\RepairRequestController::class, 'index'])->name('requests.repair');
-    Route::post('/requests/repair/{id}/approve', [App\Http\Controllers\Admin\RepairRequestController::class, 'approve'])->name('requests.repair.approve');
-    Route::post('/requests/repair/{id}/complete', [App\Http\Controllers\Admin\RepairRequestController::class, 'complete'])->name('requests.repair.complete');
     Route::post('/requests/repair/{id}/reject', [App\Http\Controllers\Admin\RepairRequestController::class, 'reject'])->name('requests.repair.reject');
-    Route::get('/requests/return', [App\Http\Controllers\Admin\ReturnRequestController::class, 'index'])->name('requests.return');
-    Route::post('/requests/return/{id}/approve', [App\Http\Controllers\Admin\ReturnRequestController::class, 'approve'])->name('requests.return.approve');
-    Route::post('/requests/return/{id}/complete', [App\Http\Controllers\Admin\ReturnRequestController::class, 'complete'])->name('requests.return.complete');
     Route::post('/requests/return/{id}/reject', [App\Http\Controllers\Admin\ReturnRequestController::class, 'reject'])->name('requests.return.reject');
     Route::post('/equipment/{id}/restore', [App\Http\Controllers\Admin\EquipmentController::class, 'restore'])->name('equipment.restore');
     Route::get('/maintenance-logs', [App\Http\Controllers\Admin\MaintenanceLogController::class, 'index'])->name('maintenance-logs.index');
-Route::get('/maintenance-logs/{id}', [App\Http\Controllers\Admin\MaintenanceLogController::class, 'show'])->name('maintenance-logs.show');
+    Route::get('/maintenance-logs/{id}', [App\Http\Controllers\Admin\MaintenanceLogController::class, 'show'])->name('maintenance-logs.show');
+    Route::post('/requests/exchange/{id}/reject', [App\Http\Controllers\Admin\RequestManagementController::class, 'rejectExchangeRequest'])->name('admin.requests.exchange.reject');
+    Route::post('/requests/repair/{id}/reject', [App\Http\Controllers\Admin\RequestManagementController::class, 'rejectRepairRequest'])->name('admin.requests.repair.reject');
+    Route::post('/requests/return/{id}/reject', [App\Http\Controllers\Admin\RequestManagementController::class, 'rejectReturnRequest'])->name('admin.requests.return.reject');
 });
 
 // ========== EMPLOYEE ROUTES ==========
@@ -80,11 +75,19 @@ Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(functi
     
     // My Requests
     Route::get('/my-requests', [RequestController::class, 'myRequests'])->name('my-requests');
+});
 
-    // Guest routes (only accessible when NOT logged in)
-    Route::middleware('guest')->group(function () {
-        Route::get('login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');
-        Route::get('register', [App\Http\Controllers\Auth\RegisterController::class, 'showRegistrationForm'])->name('register');
-        Route::get('password/reset', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-    });
+// ========== GUEST ROUTES ==========
+Route::middleware('guest')->group(function () {
+    Route::get('login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');
+    Route::get('register', [App\Http\Controllers\Auth\RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::get('password/reset', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+});
+
+// ========== NOTIFICATION ROUTES ==========
+Route::middleware(['auth'])->group(function () {
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/fetch', [App\Http\Controllers\NotificationController::class, 'fetch'])->name('notifications.fetch');
+    Route::post('/notifications/mark-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+    Route::post('/notifications/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
 });
