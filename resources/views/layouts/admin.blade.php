@@ -156,32 +156,16 @@
             <a href="{{ route('admin.maintenance-logs.index') }}" class="nav-link">
                 <i class="bi bi-tools"></i> Maintenance Logs
             </a>
-
-            <div class="nav-small-cap mt-3">REPORTS</div>
-            <a href="#" class="nav-link">
-                <i class="bi bi-file-bar-graph"></i> Inventory Report
-            </a>
-            <a href="#" class="nav-link">
-                <i class="bi bi-people"></i> Employees
-            </a>
-            
-            <hr class="mx-3 my-3">
-            <a href="#" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                <i class="bi bi-box-arrow-right"></i> Logout
-            </a>
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                @csrf
-            </form>
         </div>
     </div>
     
-    <!-- Main Content -->
     <div class="main-content">
         <!-- Top Navbar -->
         <div class="top-navbar d-flex justify-content-between align-items-center">
             <button class="btn btn-outline-secondary d-md-none" id="sidebarToggle">
                 <i class="bi bi-list"></i>
             </button>
+            @include('layouts.partials.notifications')    
             <div class="dropdown">
                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                     <img src="{{ asset('src/assets/images/profile/user1.jpg') }}" alt="" width="30" height="30" class="rounded-circle me-2">
@@ -189,13 +173,13 @@
                 </button>
  
                 <ul class="dropdown-menu dropdown-menu-end">
-                     @include('layouts.partials.notifications')
-                    <li><a class="dropdown-item" href="#">My Profile</a></li>
-                    <li><a class="dropdown-item" href="#">Settings</a></li>
                     <li><hr class="dropdown-divider"></li>
-                        <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                            Logout
+                        <a href="#" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i class="bi bi-box-arrow-right"></i> Logout
                         </a>
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                            @csrf
+                        </form>
                     </li>
                 </ul>
             </div>
@@ -242,6 +226,6 @@
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     @stack('scripts')
-    
+    <script src="{{ asset('js/notifications.js') }}"></script>
 </body>
 </html>

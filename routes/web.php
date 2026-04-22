@@ -23,8 +23,17 @@ Route::get('/dashboard', function () {
 })->middleware('auth')->name('dashboard');
 
 // ========== ADMIN ROUTES ==========
+
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/equipment-data', [App\Http\Controllers\Admin\EquipmentController::class, 'getEquipmentData'])->name('admin.equipment.data');
+    Route::get('/categories-data', [App\Http\Controllers\Admin\CategoryController::class, 'getCategoriesData'])->name('admin.categories.data');
+    Route::get('/requests/equipment-data', [App\Http\Controllers\Admin\EquipmentRequestController::class, 'getEquipmentRequestsData'])->name('admin.requests.equipment.data');
+    Route::get('/requests/exchange-data', [App\Http\Controllers\Admin\ExchangeRequestController::class, 'getExchangeRequestsData'])->name('admin.requests.exchange.data');
+    Route::get('/requests/repair-data', [App\Http\Controllers\Admin\RepairRequestController::class, 'getRepairRequestsData'])->name('admin.requests.repair.data');
+    Route::get('/requests/return-data', [App\Http\Controllers\Admin\ReturnRequestController::class, 'getReturnRequestsData'])->name('admin.requests.return.data');
+    Route::get('/maintenance-logs-data', [App\Http\Controllers\Admin\MaintenanceLogController::class, 'getMaintenanceLogsData'])->name('admin.maintenance-logs.data');
+    Route::resource('/equipment', App\Http\Controllers\Admin\EquipmentController::class);
     Route::resource('/equipment', App\Http\Controllers\Admin\EquipmentController::class);
     Route::resource('/categories', App\Http\Controllers\Admin\CategoryController::class); 
     Route::get('/categories/{slug}/equipment', [App\Http\Controllers\Admin\CategoryController::class, 'showEquipment'])->name('categories.equipment');
@@ -47,10 +56,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/equipment/{id}/restore', [App\Http\Controllers\Admin\EquipmentController::class, 'restore'])->name('equipment.restore');
     Route::get('/maintenance-logs', [App\Http\Controllers\Admin\MaintenanceLogController::class, 'index'])->name('maintenance-logs.index');
     Route::get('/maintenance-logs/{id}', [App\Http\Controllers\Admin\MaintenanceLogController::class, 'show'])->name('maintenance-logs.show');
-    Route::post('/requests/exchange/{id}/reject', [App\Http\Controllers\Admin\RequestManagementController::class, 'rejectExchangeRequest'])->name('admin.requests.exchange.reject');
-    Route::post('/requests/repair/{id}/reject', [App\Http\Controllers\Admin\RequestManagementController::class, 'rejectRepairRequest'])->name('admin.requests.repair.reject');
-    Route::post('/requests/return/{id}/reject', [App\Http\Controllers\Admin\RequestManagementController::class, 'rejectReturnRequest'])->name('admin.requests.return.reject');
-});
+    Route::post('/requests/exchange/{id}/reject', [App\Http\Controllers\Admin\RequestManagementController::class, 'rejectExchangeRequest'])->name('requests.exchange.reject');
+    Route::post('/requests/repair/{id}/reject', [App\Http\Controllers\Admin\RequestManagementController::class, 'rejectRepairRequest'])->name('requests.repair.reject');
+    Route::post('/requests/return/{id}/reject', [App\Http\Controllers\Admin\RequestManagementController::class, 'rejectReturnRequest'])->name('requests.return.reject');
+    Route::get('/equipment/data', [App\Http\Controllers\Admin\EquipmentController::class, 'getEquipmentData'])->name('equipment.data');
+    Route::get('/equipment/json', [App\Http\Controllers\Admin\EquipmentController::class, 'getEquipmentData'])->name('equipment.json');
+    Route::get('/requests/repair-data', [App\Http\Controllers\Admin\RepairRequestController::class, 'getRepairRequestsData'])->name('requests.repair.data');
+   Route::get('/requests/return-data', [App\Http\Controllers\Admin\ReturnRequestController::class, 'getReturnRequestsData'])->name('requests.return.data');
+    Route::get('/requests/exchange-data', [App\Http\Controllers\Admin\ExchangeRequestController::class, 'getExchangeRequestsData'])->name('requests.exchange.data');
+   });
 
 // ========== EMPLOYEE ROUTES ==========
 Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(function () {

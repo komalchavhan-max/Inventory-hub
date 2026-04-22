@@ -12,7 +12,7 @@
                     <p class="text-muted mb-0">Update category details</p>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('admin.categories.update', $category->id) }}" method="POST">
+                    <form action="{{ route('admin.categories.update', $category->id) }}" method="PATCH">
                         @csrf
                         @method('PUT')
                         

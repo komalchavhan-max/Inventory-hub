@@ -5,13 +5,18 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\MaintenanceLog;
 use App\Models\Equipment;
+use App\Services\DataTableService;
 use Illuminate\Http\Request;
 
 class MaintenanceLogController extends Controller
 {
     public function index(){
-        $logs = MaintenanceLog::with('equipment')->latest()->paginate(10);
-        return view('admin.maintenance-logs.index', compact('logs'));
+        return view('admin.maintenance-logs.index');
+    }
+    
+    public function getMaintenanceLogsData(){
+        $logs = MaintenanceLog::with('equipment')->select('maintenance_logs.*');
+        return DataTableService::maintenanceLogsData($logs);
     }
     
     public function show($id){

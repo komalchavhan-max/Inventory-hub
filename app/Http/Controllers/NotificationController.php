@@ -13,12 +13,24 @@ class NotificationController extends Controller
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get()
-            ->map(function($notification) {
+            ->map(function($notification){
+                $message = $notification->message;
+                $icon = '';
+                if ($notification->status == 'Approved'){
+                    $icon = '✅ ';
+                } elseif ($notification->status == 'Rejected'){
+                    $icon = '❌ ';
+                } elseif ($notification->status == 'Completed'){
+                    $icon = '✔️ ';
+                }
+                
                 return [
                     'id' => $notification->id,
-                    'message' => $notification->message,
+                    'message' => $icon . $message,
+                    'full_message' => $notification->message,
                     'status' => $notification->status,
                     'is_read' => (bool)$notification->is_read,
+                    'type' => $notification->type,
                     'created_at' => $notification->created_at ? $notification->created_at->diffForHumans() : 'Just now',
                 ];
             });
@@ -58,7 +70,11 @@ class NotificationController extends Controller
         $notifications = Notification::where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->paginate(20);
-            
-        return view('notifications.index', compact('notifications'));
+        
+        if (auth()->user()->isAdmin()){    // Check if user is admin or employee
+            return view('notifications.index', compact('notifications'));
+        }
+        
+        return view('employee.notifications.index', compact('notifications'));
     }
 }

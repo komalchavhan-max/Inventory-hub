@@ -14,7 +14,7 @@
             @endif
             
             <div class="table-responsive">
-                <table class="table table-bordered" id="maintenanceTable">
+                <table class="table table-bordered" id="maintenanceLogsTable">
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
@@ -28,32 +28,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($logs as $log)
-                        <tr>
-                            <td>{{ $log->id }}</td>
-                            <td>
-                                {{ $log->equipment->name ?? 'N/A' }}<br>
-                                <small class="text-muted">SN: {{ $log->equipment->serial_number ?? 'N/A' }}</small>
-                            </td>
-                            <td>{{ Str::limit($log->issue_description, 60) }}</td>
-                            <td>${{ number_format($log->cost, 2) }}</td>
-                            <td>{{ $log->technician_name }}</td>
-                            <td>{{ $log->repair_date->format('d-m-Y') }}</td>
-                            <td>{{ $log->created_at->format('d-m-Y') }}</td>
-                            <td>
-                                <a href="{{ route('admin.maintenance-logs.show', $log->id) }}" class="btn btn-sm btn-info">View</a>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="8" class="text-center">No maintenance logs found</td>
-                        </tr>
-                        @endforelse
                     </tbody>
                 </table>
             </div>
-            
-            {{ $logs->links() }}
         </div>
     </div>
 </div>
@@ -61,25 +38,38 @@
 
 @push('scripts')
 <script>
-    $(document).ready(function() {
-        $('#maintenanceTable').DataTable({
-            pageLength: 10,
-            order: [[0, 'desc']],
-            responsive: true,
-            language: {
-                search: "Search:",
-                lengthMenu: "Show _MENU_ entries",
-                info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                paginate: {
-                    first: "First",
-                    last: "Last",
-                    next: "Next",
-                    previous: "Previous"
-                }
-            },
-            columnDefs: [
-                { orderable: false, targets: [7] } 
-        });
+$(document).ready(function(){
+    $('#maintenanceLogsTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax:{
+            url: '{{ url("/admin/maintenance-logs-data") }}',
+            type: 'GET',
+        },
+        columns: [
+            { data: 'id', name: 'id' },
+            { data: 'equipment_name', name: 'equipment_name' },
+            { data: 'issue_description', name: 'issue_description' },
+            { data: 'cost', name: 'cost' },
+            { data: 'technician_name', name: 'technician_name' },
+            { data: 'repair_date', name: 'repair_date' },
+            { data: 'created_at', name: 'created_at' },
+            { data: 'action', name: 'action', orderable: false, searchable: false }
+        ],
+        pageLength: 10,
+        order: [[0, 'desc']],
+        language: {
+            search: "Search:",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        }
     });
+});
 </script>
 @endpush

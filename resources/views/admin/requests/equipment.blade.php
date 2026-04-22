@@ -8,9 +8,9 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Equipment Requests</h5>
             <div>
-                <span class="badge bg-warning p-2">Pending: {{ $pendingCount ?? 0 }}</span>
-                <span class="badge bg-success p-2">Fulfilled: {{ $fulfilledCount ?? 0 }}</span>
-                <span class="badge bg-danger p-2">Rejected: {{ $rejectedCount ?? 0 }}</span>
+                <span class="badge bg-warning p-2">Pending: <span id="pendingCount">0</span></span>
+                <span class="badge bg-success p-2">Fulfilled: <span id="fulfilledCount">0</span></span>
+                <span class="badge bg-danger p-2">Rejected: <span id="rejectedCount">0</span></span>
             </div>
         </div>
         <div class="card-body">
@@ -33,56 +33,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($requests as $req)
-                        <tr>
-                            <td>{{ $req->id }}</td>
-                            <td>{{ $req->user->name ?? 'N/A' }}<br><small>{{ $req->user->email ?? '' }}</small></td>
-                            <td>{{ $req->equipment->name ?? 'N/A' }}<br><small>SN: {{ $req->equipment->serial_number ?? 'N/A' }}</small></td>
-                            <td>
-                                @if($req->priority == 'Urgent')
-                                    <span class="badge bg-danger">Urgent</span>
-                                @elseif($req->priority == 'Normal')
-                                    <span class="badge bg-warning">Normal</span>
-                                @else
-                                    <span class="badge bg-info">Low</span>
-                                @endif
-                            </td>
-                            <td>{{ $req->request_date->format('d-m-Y') }}</td>
-                            <td>
-                                @if($req->status == 'Pending')
-                                    <span class="badge bg-warning">Pending</span>
-                                @elseif($req->status == 'Approved')
-                                    <span class="badge bg-info">Approved</span>
-                                @elseif($req->status == 'Fulfilled')
-                                    <span class="badge bg-success">Fulfilled</span>
-                                @else
-                                    <span class="badge bg-danger">Rejected</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($req->admin_message)
-                                    <span class="badge bg-info">Message Sent</span>
-                                @else
-                                    -
-                                @endif
-                            </td>
-                            <td>
-                                @if($req->status == 'Pending')
-                                    <form action="{{ route('admin.requests.equipment.approve', $req->id) }}" method="POST" style="display:inline">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
-                                    </form>
-                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ $req->id }}">Reject</button>
-                                @else
-                                    <span class="text-muted">-</span>
-                                @endif
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="8" class="text-center">No requests found</td>
-                        </tr>
-                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -90,57 +40,132 @@
     </div>
 </div>
 
-<!-- Reject Modals -->
-@foreach($requests as $req)
-@if($req->status == 'Pending')
-<div class="modal fade" id="rejectModal{{ $req->id }}" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="{{ route('admin.requests.equipment.reject', $req->id) }}" method="POST">
-                @csrf
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">Reject Request #{{ $req->id }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <textarea name="rejection_message" class="form-control" rows="4" required placeholder="Reason for rejection..."></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Reject</button>
-                </div>
-            </form>
+<div id="rejectModalTemplate" style="display: none;">
+    <div class="modal fade" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST">
+                    @csrf
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Reject Request</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Employee:</strong> <span class="employee-name"></span></p>
+                        <p><strong>Equipment:</strong> <span class="equipment-name"></span></p>
+                        <div class="mb-3">
+                            <label class="form-label">Reason for Rejection <span class="text-danger">*</span></label>
+                            <textarea name="rejection_message" class="form-control" rows="4" required 
+                                placeholder="Please explain why this request is being rejected..."></textarea>
+                            <small class="text-muted">This message will be sent to the employee and visible to both.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Send & Reject</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
-@endif
-@endforeach
+
+<div id="messageModalTemplate" style="display: none;">
+    <div class="modal fade" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Admin Message</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Reason for Rejection:</strong></p>
+                    <div class="alert alert-danger message-content"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @endsection
 
 @push('scripts')
 <script>
-    $(document).ready(function() {
-        $('#equipmentRequestsTable').DataTable({
-            pageLength: 10,
-            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-            order: [[0, 'desc']],
-            responsive: true,
-            language: {
-                search: "Search:",
-                lengthMenu: "Show _MENU_ entries",
-                info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                paginate: {
-                    first: "First",
-                    last: "Last",
-                    next: "Next",
-                    previous: "Previous"
-                }
-            },
-            columnDefs: [
-                { orderable: false, targets: [7] }
-            ]
-        });
+$(document).ready(function() {
+    var table = $('#equipmentRequestsTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: '{{ url("/admin/requests/equipment-data") }}',
+            type: 'GET',
+        },
+        columns: [
+            { data: 'id', name: 'id' },
+            { data: 'employee_name', name: 'employee_name' },
+            { data: 'equipment_name', name: 'equipment_name' },
+            { data: 'priority', name: 'priority' },
+            { data: 'request_date', name: 'request_date' },
+            { data: 'status', name: 'status' },
+            { data: 'admin_message_display', name: 'admin_message_display', orderable: false, searchable: false },
+            { data: 'action', name: 'action', orderable: false, searchable: false }
+        ],
+        pageLength: 10,
+        order: [[0, 'desc']],
+        language: {
+            search: "Search:",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        },
+        drawCallback: function() {
+            var api = this.api();
+            var pending = 0, fulfilled = 0, rejected = 0;
+            
+            api.rows().data().each(function(row) {
+                if (row.status && row.status.includes('Pending')) pending++;
+                if (row.status && row.status.includes('Fulfilled')) fulfilled++;
+                if (row.status && row.status.includes('Rejected')) rejected++;
+            });
+            
+            $('#pendingCount').text(pending);
+            $('#fulfilledCount').text(fulfilled);
+            $('#rejectedCount').text(rejected);
+            
+            $('.view-message-btn').off('click').on('click', function() {
+                var message = $(this).data('message');
+                showMessageModal(message);
+            });
+            
+            $('.reject-btn').off('click').on('click', function() {
+                var id = $(this).data('id');
+                var employeeName = $(this).data('employee');
+                var equipmentName = $(this).data('equipment');
+                showRejectModal(id, employeeName, equipmentName);
+            });
+        }
     });
+    
+    function showRejectModal(id, employeeName, equipmentName) {
+        var $template = $('#rejectModalTemplate').children().clone();
+        $template.find('.employee-name').text(employeeName);
+        $template.find('.equipment-name').text(equipmentName);
+        $template.find('form').attr('action', '/admin/requests/equipment/' + id + '/reject');
+        $template.modal('show');
+    }
+    
+    function showMessageModal(message) {
+        var $template = $('#messageModalTemplate').children().clone();
+        $template.find('.message-content').text(message);
+        $template.modal('show');
+    }
+});
 </script>
 @endpush

@@ -4,207 +4,180 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Repair Requests</h5>
-                    <div>
-                        <span class="badge bg-warning p-2">Pending: {{ $pendingCount ?? 0 }}</span>
-                        <span class="badge bg-info p-2">Approved: {{ $approvedCount ?? 0 }}</span>
-                        <span class="badge bg-success p-2">Completed: {{ $completedCount ?? 0 }}</span>
-                        <span class="badge bg-danger p-2">Rejected: {{ $rejectedCount ?? 0 }}</span>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Repair Requests</h5>
+            <div>
+                <span class="badge bg-warning p-2">Pending: <span id="pendingCount">0</span></span>
+                <span class="badge bg-info p-2">Approved: <span id="approvedCount">0</span></span>
+                <span class="badge bg-success p-2">Completed: <span id="completedCount">0</span></span>
+                <span class="badge bg-danger p-2">Rejected: <span id="rejectedCount">0</span></span>
+            </div>
+        </div>
+        <div class="card-body">
+            @if(session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+            
+            <div class="table-responsive">
+                <table class="table table-bordered" id="repairRequestsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Employee</th>
+                            <th>Equipment</th>
+                            <th>Issue</th>
+                            <th>Urgency</th>
+                            <th>Request Date</th>
+                            <th>Status</th>
+                            <th>Admin Message</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data loaded via AJAX -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal Template -->
+<div id="rejectModalTemplate" style="display: none;">
+    <div class="modal fade" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST">
+                    @csrf
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Reject Repair Request</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
+                    <div class="modal-body">
+                        <p><strong>Employee:</strong> <span class="employee-name"></span></p>
+                        <p><strong>Equipment:</strong> <span class="equipment-name"></span></p>
+                        <div class="mb-3">
+                            <label class="form-label">Reason for Rejection <span class="text-danger">*</span></label>
+                            <textarea name="rejection_message" class="form-control" rows="4" required 
+                                placeholder="Please explain why this repair request is being rejected..."></textarea>
+                            <small class="text-muted">This message will be sent to the employee.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Send & Reject</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Message View Modal Template -->
+<div id="messageModalTemplate" style="display: none;">
+    <div class="modal fade" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Admin Message</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="card-body">
-                    @if(session('success'))
-                        <div class="alert alert-success">{{ session('success') }}</div>
-                    @endif
-                    
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="repairRequestsTable">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Employee</th>
-                                    <th>Equipment</th>
-                                    <th>Issue</th>
-                                    <th>Urgency</th>
-                                    <th>Request Date</th>
-                                    <th>Status</th>
-                                    <th>Admin Message</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($requests as $req)
-                                <tr>
-                                    <td>{{ $req->id }}</td>
-                                    <td>{{ $req->user->name ?? 'N/A' }}<br><small>{{ $req->user->email ?? '' }}</small></td>
-                                    <td>{{ $req->equipment->name ?? 'N/A' }}<br><small>{{ $req->equipment->serial_number ?? '' }}</small></td>
-                                    <td>{{ Str::limit($req->issue_description, 50) }}</td>
-                                    <td>
-                                        @if($req->urgency == 'Critical')
-                                            <span class="badge bg-danger">Critical</span>
-                                        @elseif($req->urgency == 'High')
-                                            <span class="badge bg-warning">High</span>
-                                        @elseif($req->urgency == 'Medium')
-                                            <span class="badge bg-info">Medium</span>
-                                        @else
-                                            <span class="badge bg-success">Low</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ $req->request_date->format('d-m-Y') }}</td>
-                                    <td>
-                                        @if($req->status == 'Pending')
-                                            <span class="badge bg-warning">Pending</span>
-                                        @elseif($req->status == 'Approved')
-                                            <span class="badge bg-info">In Repair</span>
-                                        @elseif($req->status == 'Completed')
-                                            <span class="badge bg-success">Completed</span>
-                                        @elseif($req->status == 'Rejected')
-                                            <span class="badge bg-danger">Rejected</span>
-                                            @if($req->admin_message)
-                                                <button type="button" class="btn btn-sm btn-link text-danger" data-bs-toggle="modal" data-bs-target="#messageModal{{ $req->id }}">
-                                                    View Reason
-                                                </button>
-                                            @endif
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($req->admin_message)
-                                            <span class="badge bg-info">Sent</span>
-                                            <button type="button" class="btn btn-sm btn-link" data-bs-toggle="modal" data-bs-target="#detailModal{{ $req->id }}">
-                                                Read
-                                            </button>
-                                        @else
-                                            <span class="text-muted">-</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($req->status == 'Pending')
-                                            <div class="btn-group" role="group">
-                                                <form action="{{ route('admin.requests.repair.approve', $req->id) }}" method="POST" style="display:inline-block">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-sm btn-success">Approve</button>
-                                                </form>
-                                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ $req->id }}">
-                                                    Reject
-                                                </button>
-                                            </div>
-                                        @elseif($req->status == 'Approved')
-                                            <form action="{{ route('admin.requests.repair.complete', $req->id) }}" method="POST">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-primary">Mark Complete</button>
-                                            </form>
-                                        @else
-                                            <span class="text-muted">-</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                                
-                                <!-- Reject Modal -->
-                                <div class="modal fade" id="rejectModal{{ $req->id }}" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <form action="{{ route('admin.requests.repair.reject', $req->id) }}" method="POST">
-                                                @csrf
-                                                <div class="modal-header bg-danger text-white">
-                                                    <h5 class="modal-title">Reject Repair Request #{{ $req->id }}</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p><strong>Employee:</strong> {{ $req->user->name ?? 'N/A' }}</p>
-                                                    <p><strong>Equipment:</strong> {{ $req->equipment->name ?? 'N/A' }}</p>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Reason for Rejection <span class="text-danger">*</span></label>
-                                                        <textarea name="rejection_message" class="form-control" rows="4" required 
-                                                            placeholder="Please explain why this repair request is being rejected..."></textarea>
-                                                        <small class="text-muted">This message will be visible to both admin and employee.</small>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn btn-danger">Send & Reject</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Message Detail Modal -->
-                                @if($req->admin_message)
-                                <div class="modal fade" id="detailModal{{ $req->id }}" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-info text-white">
-                                                <h5 class="modal-title">Rejection Message for Repair Request #{{ $req->id }}</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <p><strong>Employee:</strong> {{ $req->user->name ?? 'N/A' }}</p>
-                                                <p><strong>Rejected on:</strong> {{ $req->updated_at->format('d-m-Y H:i') }}</p>
-                                                <hr>
-                                                <p><strong>Rejection Reason:</strong></p>
-                                                <div class="alert alert-danger">
-                                                    {{ $req->admin_message }}
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="modal fade" id="messageModal{{ $req->id }}" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-danger text-white">
-                                                <h5 class="modal-title">Rejection Details</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <p><strong>Reason:</strong></p>
-                                                <div class="alert alert-danger">
-                                                    {{ $req->admin_message }}
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                @endif
-                                
-                                @empty
-                                <tr>
-                                    <td colspan="9" class="text-center">No repair requests found</td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    {{ $requests->links() }}
+                <div class="modal-body">
+                    <p><strong>Reason for Rejection:</strong></p>
+                    <div class="alert alert-danger message-content"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@endsection
+
 @push('scripts')
 <script>
-    $(document).ready(function() {
-        $('#repairRequestsTable').DataTable({
-            pageLength: 10,
-            order: [[0, 'desc']],
-            responsive: true,
-            columnDefs: [
-                { orderable: false, targets: [8] }
-            ]
-        });
+$(document).ready(function() {
+    var table = $('#repairRequestsTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: '{{ url("/admin/requests/repair-data") }}',
+            type: 'GET',
+            dataSrc: function(json) {
+                console.log('Repair data received:', json);
+                return json.data;
+            }
+        },
+        columns: [
+            { data: 'id', name: 'id' },
+            { data: 'employee_name', name: 'employee_name' },
+            { data: 'equipment_name', name: 'equipment_name' },
+            { data: 'issue_description', name: 'issue_description' },
+            { data: 'urgency', name: 'urgency' },
+            { data: 'request_date', name: 'request_date' },
+            { data: 'status', name: 'status' },
+            { data: 'admin_message_display', name: 'admin_message_display', orderable: false, searchable: false },
+            { data: 'action', name: 'action', orderable: false, searchable: false }
+        ],
+        pageLength: 10,
+        order: [[0, 'desc']],
+        language: {
+            search: "Search:",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        },
+        drawCallback: function() {
+            var api = this.api();
+            var pending = 0, approved = 0, completed = 0, rejected = 0;
+            
+            api.rows().data().each(function(row) {
+                if (row.status && row.status.includes('Pending')) pending++;
+                if (row.status && row.status.includes('Approved')) approved++;
+                if (row.status && row.status.includes('Completed')) completed++;
+                if (row.status && row.status.includes('Rejected')) rejected++;
+            });
+            
+            $('#pendingCount').text(pending);
+            $('#approvedCount').text(approved);
+            $('#completedCount').text(completed);
+            $('#rejectedCount').text(rejected);
+            
+            $('.reject-btn').off('click').on('click', function() {
+                var id = $(this).data('id');
+                var employeeName = $(this).data('employee');
+                var equipmentName = $(this).data('equipment');
+                showRejectModal(id, employeeName, equipmentName);
+            });
+            
+            $('.view-message-btn').off('click').on('click', function() {
+                var message = $(this).data('message');
+                showMessageModal(message);
+            });
+        }
     });
+    
+    function showRejectModal(id, employeeName, equipmentName) {
+        var $template = $('#rejectModalTemplate').children().clone();
+        $template.find('.employee-name').text(employeeName);
+        $template.find('.equipment-name').text(equipmentName);
+        $template.find('form').attr('action', '/admin/requests/repair/' + id + '/reject');
+        $template.modal('show');
+    }
+    
+    function showMessageModal(message) {
+        var $template = $('#messageModalTemplate').children().clone();
+        $template.find('.message-content').text(message);
+        $template.modal('show');
+    }
+});
 </script>
 @endpush
-@endsection

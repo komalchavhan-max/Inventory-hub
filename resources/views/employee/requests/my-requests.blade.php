@@ -53,7 +53,7 @@
                         <div class="card-body">
                             @if($equipmentRequests->count() > 0)
                             <div class="table-responsive">
-                                <table class="table table-bordered" id="equipmentRequestsTable">
+                                <table class="table table-bordered" id="equipmentTable">
                                     <thead class="table-light">
                                         <tr>
                                             <th>Equipment</th>
@@ -68,7 +68,7 @@
                                     <tbody>
                                         @foreach($equipmentRequests as $request)
                                         <tr>
-                                             <td>{{ $request->equipment->name ?? 'N/A' }}<br>
+                                            <td>{{ $request->equipment->name ?? 'N/A' }}<br>
                                                 <small class="text-muted">{{ $request->equipment->serial_number ?? '' }}</small>
                                             </td>
                                             <td>
@@ -99,10 +99,6 @@
                                                     <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#eqRejectModal{{ $request->id }}">
                                                         View Reason
                                                     </button>
-                                                @elseif($request->status == 'Approved' && $request->admin_message)
-                                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#eqApproveModal{{ $request->id }}">
-                                                        View Message
-                                                    </button>
                                                 @else
                                                     <span class="text-muted">-</span>
                                                 @endif
@@ -112,37 +108,12 @@
                                     </tbody>
                                 </table>
                             </div>
-                             @else
+                            @else
                             <div class="text-center py-5">
                                 <p class="text-muted">No equipment requests found</p>
                                 <a href="{{ route('employee.requests.equipment.form') }}" class="btn btn-primary">Request Equipment</a>
                             </div>
                             @endif
-                            <!-- Equipment Rejection Modals -->
-                            @foreach($equipmentRequests as $request)
-                                @if($request->status == 'Rejected' && $request->admin_message)
-                                    <div class="modal fade" id="eqRejectModal{{ $request->id }}" tabindex="-1">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header bg-danger text-white">
-                                                    <h5 class="modal-title">Request Rejected</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p><strong>Equipment:</strong> {{ $request->equipment->name ?? 'N/A' }}</p>
-                                                    <p><strong>Reason for Rejection:</strong></p>
-                                                    <div class="alert alert-danger">
-                                                        {{ $request->admin_message }}
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endif
-                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -153,7 +124,7 @@
                         <div class="card-body">
                             @if($exchangeRequests->count() > 0)
                             <div class="table-responsive">
-                                <table class="table table-bordered" id="exchangeRequestsTable">
+                                <table class="table table-bordered" id="exchangeTable">
                                     <thead class="table-light">
                                         <tr>
                                             <th>Old Equipment</th>
@@ -214,31 +185,6 @@
                                 <a href="{{ route('employee.requests.exchange.form') }}" class="btn btn-warning">Request Exchange</a>
                             </div>
                             @endif
-                            <!-- Exchange Rejection Modals -->
-                            @foreach($exchangeRequests as $request)
-                                @if($request->status == 'Rejected' && $request->admin_message)
-                                    <div class="modal fade" id="exRejectModal{{ $request->id }}" tabindex="-1">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header bg-danger text-white">
-                                                    <h5 class="modal-title">Exchange Request Rejected</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p><strong>Requested Equipment:</strong> {{ $request->requestedEquipment->name ?? 'N/A' }}</p>
-                                                    <p><strong>Reason for Rejection:</strong></p>
-                                                    <div class="alert alert-danger">
-                                                        {{ $request->admin_message }}
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endif
-                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -249,7 +195,7 @@
                         <div class="card-body">
                             @if($repairRequests->count() > 0)
                             <div class="table-responsive">
-                                <table class="table table-bordered" id="repairRequestsTable">
+                                <table class="table table-bordered" id="repairTable">
                                     <thead class="table-light">
                                         <tr>
                                             <th>Equipment</th>
@@ -310,31 +256,6 @@
                                 <a href="{{ route('employee.requests.repair.form') }}" class="btn btn-danger">Report Repair</a>
                             </div>
                             @endif
-                            <!-- Repair Rejection Modals -->
-                            @foreach($repairRequests as $request)
-                                @if($request->status == 'Rejected' && $request->admin_message)
-                                    <div class="modal fade" id="repRejectModal{{ $request->id }}" tabindex="-1">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header bg-danger text-white">
-                                                    <h5 class="modal-title">Repair Request Rejected</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p><strong>Equipment:</strong> {{ $request->equipment->name ?? 'N/A' }}</p>
-                                                    <p><strong>Reason for Rejection:</strong></p>
-                                                    <div class="alert alert-danger">
-                                                        {{ $request->admin_message }}
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endif
-                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -345,7 +266,7 @@
                         <div class="card-body">
                             @if($returnRequests->count() > 0)
                             <div class="table-responsive">
-                                <table class="table table-bordered" id="returnRequestsTable">
+                                <table class="table table-bordered" id="returnTable">
                                     <thead class="table-light">
                                         <tr>
                                             <th>Equipment</th>
@@ -396,31 +317,6 @@
                                 <a href="{{ route('employee.requests.return.form') }}" class="btn btn-info">Return Equipment</a>
                             </div>
                             @endif
-                            <!-- Return Rejection Modals -->
-                            @foreach($returnRequests as $request)
-                                @if($request->status == 'Rejected' && $request->admin_message)
-                                    <div class="modal fade" id="retRejectModal{{ $request->id }}" tabindex="-1">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header bg-danger text-white">
-                                                    <h5 class="modal-title">Return Request Rejected</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p><strong>Equipment:</strong> {{ $request->equipment->name ?? 'N/A' }}</p>
-                                                    <p><strong>Reason for Rejection:</strong></p>
-                                                    <div class="alert alert-danger">
-                                                        {{ $request->admin_message }}
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endif
-                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -430,82 +326,182 @@
     </div>
 </div>
 
-@push('scripts')
-<script>
-    $(document).ready(function() {
-        // Equipment Requests Table
-        $('#equipmentRequestsTable').DataTable({
-            pageLength: 10,
-            order: [[3, 'desc']],
-            responsive: true,
-            language: {
-                search: "Search:",
-                lengthMenu: "Show _MENU_ entries",
-                info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                paginate: {
-                    first: "First",
-                    last: "Last",
-                    next: "Next",
-                    previous: "Previous"
-                }
-            }
-        });
-        
-        // Exchange Requests Table
-        $('#exchangeRequestsTable').DataTable({
-            pageLength: 10,
-            order: [[4, 'desc']],
-            responsive: true,
-            language: {
-                search: "Search:",
-                lengthMenu: "Show _MENU_ entries",
-                info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                paginate: {
-                    first: "First",
-                    last: "Last",
-                    next: "Next",
-                    previous: "Previous"
-                }
-            }
-        });
-        
-        // Repair Requests Table
-        $('#repairRequestsTable').DataTable({
-            pageLength: 10,
-            order: [[3, 'desc']],
-            responsive: true,
-            language: {
-                search: "Search:",
-                lengthMenu: "Show _MENU_ entries",
-                info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                paginate: {
-                    first: "First",
-                    last: "Last",
-                    next: "Next",
-                    previous: "Previous"
-                }
-            }
-        });
-        
-        // Return Requests Table
-        $('#returnRequestsTable').DataTable({
-            pageLength: 10,
-            order: [[3, 'desc']],
-            responsive: true,
-            language: {
-                search: "Search:",
-                lengthMenu: "Show _MENU_ entries",
-                info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                paginate: {
-                    first: "First",
-                    last: "Last",
-                    next: "Next",
-                    previous: "Previous"
-                }
-            }
-        });
-    });
-</script>
-@endpush
+<!-- Equipment Rejection Modals -->
+@foreach($equipmentRequests as $request)
+    @if($request->status == 'Rejected' && $request->admin_message)
+    <div class="modal fade" id="eqRejectModal{{ $request->id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Request Rejected</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Equipment:</strong> {{ $request->equipment->name ?? 'N/A' }}</p>
+                    <p><strong>Reason for Rejection:</strong></p>
+                    <div class="alert alert-danger">
+                        {{ $request->admin_message }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+@endforeach
+
+<!-- Exchange Rejection Modals -->
+@foreach($exchangeRequests as $request)
+    @if($request->status == 'Rejected' && $request->admin_message)
+    <div class="modal fade" id="exRejectModal{{ $request->id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Exchange Request Rejected</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Requested Equipment:</strong> {{ $request->requestedEquipment->name ?? 'N/A' }}</p>
+                    <p><strong>Reason for Rejection:</strong></p>
+                    <div class="alert alert-danger">
+                        {{ $request->admin_message }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+@endforeach
+
+<!-- Repair Rejection Modals -->
+@foreach($repairRequests as $request)
+    @if($request->status == 'Rejected' && $request->admin_message)
+    <div class="modal fade" id="repRejectModal{{ $request->id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Repair Request Rejected</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Equipment:</strong> {{ $request->equipment->name ?? 'N/A' }}</p>
+                    <p><strong>Reason for Rejection:</strong></p>
+                    <div class="alert alert-danger">
+                        {{ $request->admin_message }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+@endforeach
+
+<!-- Return Rejection Modals -->
+@foreach($returnRequests as $request)
+    @if($request->status == 'Rejected' && $request->admin_message)
+    <div class="modal fade" id="retRejectModal{{ $request->id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Return Request Rejected</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Equipment:</strong> {{ $request->equipment->name ?? 'N/A' }}</p>
+                    <p><strong>Reason for Rejection:</strong></p>
+                    <div class="alert alert-danger">
+                        {{ $request->admin_message }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+@endforeach
 
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    $('#equipmentTable').DataTable({
+        pageLength: 10,
+        order: [[3, 'desc']],
+        responsive: true,
+        language: {
+            search: "Search:",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        }
+    });
+    
+    $('#exchangeTable').DataTable({
+        pageLength: 10,
+        order: [[4, 'desc']],
+        responsive: true,
+        language: {
+            search: "Search:",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        }
+    });
+    
+    $('#repairTable').DataTable({
+        pageLength: 10,
+        order: [[3, 'desc']],
+        responsive: true,
+        language: {
+            search: "Search:",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        }
+    });
+    
+    $('#returnTable').DataTable({
+        pageLength: 10,
+        order: [[3, 'desc']],
+        responsive: true,
+        language: {
+            search: "Search:",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        }
+    });
+});
+</script>
+@endpush

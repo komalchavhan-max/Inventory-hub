@@ -8,24 +8,26 @@ use App\Models\EquipmentRequest;
 use App\Models\ExchangeRequest;
 use App\Models\RepairRequest;
 use App\Models\ReturnRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\Employee\EquipmentRequestStoreRequest;
+use App\Http\Requests\Employee\ExchangeRequestStoreRequest;
+use App\Http\Requests\Employee\RepairRequestStoreRequest;
+use App\Http\Requests\Employee\ReturnRequestStoreRequest;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Notification;
+use App\Models\User;
+use App\Helpers\NotificationHelper;
 
 class RequestController extends Controller
 {
-    public function equipmentRequestForm(){
+    public function equipmentRequestForm(){    // Show Equipment Request Form
         $availableEquipment = Equipment::where('status', 'Available')->get();
         return view('employee.requests.equipment-request', compact('availableEquipment'));
     }
-    
-    public function storeEquipmentRequest(Request $request){
-        $validated = $request->validate([
-            'equipment_id' => 'required|exists:equipment,id',
-            'priority' => 'required|in:Urgent,Normal,Low',
-            'request_reason' => 'required|min:10'
-        ]);
+
+    public function storeEquipmentRequest(EquipmentRequestStoreRequest $request){
+        $validated = $request->validated();
         
-        EquipmentRequest::create([
+        $equipmentRequest = EquipmentRequest::create([
             'user_id' => Auth::id(),
             'equipment_id' => $validated['equipment_id'],
             'request_date' => now(),
@@ -34,27 +36,28 @@ class RequestController extends Controller
             'status' => 'Pending'
         ]);
         
+        $equipment = Equipment::find($validated['equipment_id']);
+        NotificationHelper::notifyAdmins(
+            'equipment_request',
+            $equipmentRequest->id,
+            'New equipment request from ' . Auth::user()->name . ' for ' . ($equipment->name ?? 'equipment'),
+            'Pending'
+        );
+        
         return redirect()->route('employee.dashboard')
             ->with('success', 'Equipment request submitted successfully!');
     }
     
-    public function exchangeRequestForm(){
+    public function exchangeRequestForm(){          
         $myEquipment = Equipment::where('assigned_to', Auth::id())->get();
         $availableEquipment = Equipment::where('status', 'Available')->get();
         return view('employee.requests.exchange-request', compact('myEquipment', 'availableEquipment'));
     }
-    
-    public function storeExchangeRequest(Request $request){
-        $validated = $request->validate([
-            'old_equipment_id' => 'required|exists:equipment,id',
-            'requested_equipment_id' => 'required|exists:equipment,id',
-            'exchange_reason' => 'required|min:10',
-            'old_equipment_condition' => 'required',
-            'has_damage' => 'boolean',
-            'damage_description' => 'nullable|required_if:has_damage,1'
-        ]);
+
+    public function storeExchangeRequest(ExchangeRequestStoreRequest $request){
+        $validated = $request->validated();
         
-        ExchangeRequest::create([
+        $exchangeRequest = ExchangeRequest::create([
             'user_id' => Auth::id(),
             'old_equipment_id' => $validated['old_equipment_id'],
             'requested_equipment_id' => $validated['requested_equipment_id'],
@@ -66,25 +69,26 @@ class RequestController extends Controller
             'status' => 'Pending'
         ]);
         
+        NotificationHelper::notifyAdmins(
+            'exchange_request',
+            $exchangeRequest->id,
+            'New exchange request from ' . Auth::user()->name,
+            'Pending'
+        );
+        
         return redirect()->route('employee.dashboard')
             ->with('success', 'Exchange request submitted successfully!');
     }
     
-    public function repairRequestForm(){
+    public function repairRequestForm(){     // Show Repair Request Form
         $myEquipment = Equipment::where('assigned_to', Auth::id())->get();
         return view('employee.requests.repair-request', compact('myEquipment'));
     }
 
-    public function storeRepairRequest(Request $request){
-        $validated = $request->validate([
-            'equipment_id' => 'required|exists:equipment,id',
-            'issue_description' => 'required|min:10',
-            'urgency' => 'required|in:Critical,High,Medium,Low',
-            'location' => 'nullable|string',
-            'photos_available' => 'boolean'
-        ]);
+    public function storeRepairRequest(RepairRequestStoreRequest $request){
+        $validated = $request->validated();
         
-        RepairRequest::create([
+        $repairRequest = RepairRequest::create([
             'user_id' => Auth::id(),
             'equipment_id' => $validated['equipment_id'],
             'issue_description' => $validated['issue_description'],
@@ -95,24 +99,27 @@ class RequestController extends Controller
             'status' => 'Pending'
         ]);
         
+        $equipment = Equipment::find($validated['equipment_id']);
+        NotificationHelper::notifyAdmins(
+            'repair_request',
+            $repairRequest->id,
+            'New repair request from ' . Auth::user()->name . ' for ' . ($equipment->name ?? 'equipment'),
+            'Pending'
+        );
+        
         return redirect()->route('employee.dashboard')
             ->with('success', 'Repair request submitted. Admin will review it.');
     }
 
-    public function returnRequestForm(){
+    public function returnRequestForm(){    // Show Return Request Form
         $myEquipment = Equipment::where('assigned_to', Auth::id())->get();
         return view('employee.requests.return-request', compact('myEquipment'));
     }
 
-    public function storeReturnRequest(Request $request){
-        $validated = $request->validate([
-            'equipment_id' => 'required|exists:equipment,id',
-            'return_reason' => 'required|in:Leaving Company,Exchange,Broken,Upgrade,Other',
-            'equipment_condition' => 'required',
-            'missing_parts' => 'nullable|string'
-        ]);
+    public function storeReturnRequest(ReturnRequestStoreRequest $request){
+        $validated = $request->validated();
         
-        ReturnRequest::create([
+        $returnRequest = ReturnRequest::create([
             'user_id' => Auth::id(),
             'equipment_id' => $validated['equipment_id'],
             'return_reason' => $validated['return_reason'],
@@ -122,11 +129,19 @@ class RequestController extends Controller
             'status' => 'Pending'
         ]);
         
+        $equipment = Equipment::find($validated['equipment_id']);
+        NotificationHelper::notifyAdmins(
+            'return_request',
+            $returnRequest->id,
+            'New return request from ' . Auth::user()->name . ' for ' . ($equipment->name ?? 'equipment'),
+            'Pending'
+        );
+        
         return redirect()->route('employee.dashboard')
             ->with('success', 'Return request submitted. Please wait for admin approval.');
     }
 
-    public function myRequests(){
+    public function myRequests(){    // Show All My Requests
         $equipmentRequests = EquipmentRequest::where('user_id', Auth::id())->get();
         $exchangeRequests = ExchangeRequest::where('user_id', Auth::id())->get();
         $repairRequests = RepairRequest::where('user_id', Auth::id())->get();

@@ -6,32 +6,65 @@ use App\Http\Controllers\Controller;
 use App\Models\RepairRequest;
 use App\Models\Equipment;
 use App\Models\MaintenanceLog;
-use App\Http\Requests\RepairRequestRejectRequest;
+use App\Models\Notification;
+use App\Services\DataTableService;
+use Illuminate\Http\Request;
 
 class RepairRequestController extends Controller
 {
     public function index(){
-        $requests = RepairRequest::with(['user', 'equipment'])->latest()->paginate(10);
-        $pendingCount = RepairRequest::where('status', 'Pending')->count();
-        $approvedCount = RepairRequest::where('status', 'Approved')->count();
-        $completedCount = RepairRequest::where('status', 'Completed')->count();
-        $rejectedCount = RepairRequest::where('status', 'Rejected')->count();
-        return view('admin.requests.repair', compact('requests', 'pendingCount', 'approvedCount', 'completedCount', 'rejectedCount'));
+        return view('admin.requests.repair');
+    }
+    
+    public function getRepairRequestsData(){
+        $requests = RepairRequest::with(['user', 'equipment'])->select('repair_requests.*');
+        return DataTableService::repairRequestsData($requests);
     }
     
     public function approve($id){
-        $request = RepairRequest::findOrFail($id);
-        $request->status = 'Approved';
-        $request->save();
+        $repairRequest = RepairRequest::findOrFail($id);
+        $repairRequest->status = 'Approved';
+        $repairRequest->save();
         
-        $equipment = Equipment::find($request->equipment_id);
+        $equipment = Equipment::find($repairRequest->equipment_id);
         if ($equipment) {
             $equipment->status = 'In-Repair';
             $equipment->assigned_to = null;
             $equipment->save();
         }
         
+        Notification::create([
+            'user_id' => $repairRequest->user_id,
+            'type' => 'repair_request',
+            'request_id' => $repairRequest->id,
+            'message' => 'Your repair request for ' . ($equipment->name ?? 'equipment') . ' has been approved.',
+            'status' => 'Approved',
+            'is_read' => false
+        ]);
+        
         return redirect()->back()->with('success', 'Repair request approved!');
+    }
+    
+    public function reject(Request $request, $id){
+        $request->validate([
+            'rejection_message' => 'required|string|min:5'
+        ]);
+        
+        $repairRequest = RepairRequest::findOrFail($id);
+        $repairRequest->status = 'Rejected';
+        $repairRequest->admin_message = $request->rejection_message;
+        $repairRequest->save();
+        
+        Notification::create([
+            'user_id' => $repairRequest->user_id,
+            'type' => 'repair_request',
+            'request_id' => $repairRequest->id,
+            'message' => 'Your repair request has been rejected. Reason: ' . $request->rejection_message,
+            'status' => 'Rejected',
+            'is_read' => false
+        ]);
+        
+        return redirect()->back()->with('success', 'Repair request rejected!');
     }
     
     public function complete($id){
@@ -39,30 +72,30 @@ class RepairRequestController extends Controller
         $repairRequest->status = 'Completed';
         $repairRequest->completion_date = now();
         $repairRequest->save();
-
-         MaintenanceLog::create([
+        
+        MaintenanceLog::create([
             'equipment_id' => $repairRequest->equipment_id,
             'issue_description' => $repairRequest->issue_description,
-            'cost' => 0, // Admin can update later
+            'cost' => 0,
             'technician_name' => 'Pending',
             'repair_date' => now()
         ]);
         
-        $equipment = Equipment::find($repairRequest->equipment_id);   // Update equipment status back to available
+        $equipment = Equipment::find($repairRequest->equipment_id);
         if ($equipment) {
             $equipment->status = 'Available';
             $equipment->save();
         }
         
-        return redirect()->back()->with('success', 'Repair completed!');
-    }
-    
-    public function reject(RepairRequestRejectRequest $httpRequest, $id){
-        $repairRequest = RepairRequest::findOrFail($id);
-        $repairRequest->status = 'Rejected';
-        $repairRequest->admin_message = $httpRequest->rejection_message;
-        $repairRequest->save();
+        Notification::create([
+            'user_id' => $repairRequest->user_id,
+            'type' => 'repair_request',
+            'request_id' => $repairRequest->id,
+            'message' => 'Your equipment repair is complete. You can now request the equipment again.',
+            'status' => 'Completed',
+            'is_read' => false
+        ]);
         
-        return redirect()->back()->with('success', 'Repair request rejected! Message sent to employee.');
+        return redirect()->back()->with('success', 'Repair completed!');
     }
 }

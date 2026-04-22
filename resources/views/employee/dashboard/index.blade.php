@@ -70,19 +70,18 @@
             </div>
         </div>
     </div>
-
-    <!-- My Equipment Section -->
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">My Equipment</h5>
-                </div>
-                <div class="card-body">
-                    @if($myEquipment->count() > 0)
+<div class="row mt-4">
+    <!-- My Equipment Column -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">My Equipment</h5>
+            </div>
+            <div class="card-body">
+                @if($myEquipment->count() > 0)
                     <div class="table-responsive">
-                        <table class="table" id="recentEquipmentTable">
-                            <thead>
+                        <table class="table table-bordered">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Equipment</th>
                                     <th>Serial Number</th>
@@ -92,50 +91,71 @@
                             <tbody>
                                 @foreach($myEquipment as $item)
                                 <tr>
-                                    <td>{{ $item->name }}</td>
-                                    <td>{{ $item->serial_number }}</td>
-                                    <td>{{ $item->category->name ?? 'Uncategorized' }}</td>
+                                    <td>{{ $item->name }}</br>
+                                        <small class="text-muted">{{ $item->serial_number }}</small>
+                                    </td>
+                                    <td>{{ $item->serial_number }}</br>
+                                        <small class="text-muted">{{ $item->category->name ?? 'Uncategorized' }}</small>
+                                    </td>
+                                    <td>{{ $item->category->name ?? 'Uncategorized' }}</br>
+                                        <small class="text-muted">Assigned</small>
+                                    </td>
                                 </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
-                    @else
+                @else
                     <p class="text-muted text-center py-3">No equipment assigned to you yet.</p>
-                    @endif
-                </div>
+                    <div class="text-center">
+                        <a href="{{ route('employee.requests.equipment.form') }}" class="btn btn-primary btn-sm">Request Equipment</a>
+                    </div>
+                @endif
             </div>
         </div>
-        
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">My Recent Requests</h5>
-                </div>
-                <div class="card-body">
-                    @if($recentRequests->count() > 0)
+    </div>
+    
+    <!-- My Recent Requests Column -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">My Recent Requests</h5>
+            </div>
+            <div class="card-body">
+                @if($recentRequests->count() > 0)
                     <div class="list-group">
                         @foreach($recentRequests as $request)
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>{{ $request->type ?? 'Request' }}</strong>
-                                    <br>
-                                    <small class="text-muted">{{ $request->created_at->diffForHumans() ?? 'Recently' }}</small>
+                            <div class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        @if(isset($request->equipment))
+                                            <strong>{{ $request->equipment->name ?? 'Equipment Request' }}</strong>
+                                        @elseif(isset($request->requestedEquipment))
+                                            <strong>{{ $request->requestedEquipment->name ?? 'Exchange Request' }}</strong>
+                                        @else
+                                            <strong>{{ ucfirst(str_replace('_', ' ', $request->type ?? 'Request')) }}</strong>
+                                        @endif
+                                        <br>
+                                        <small class="text-muted">{{ $request->created_at->diffForHumans() }}</small>
+                                    </div>
+                                    <span class="badge bg-{{ $request->status == 'Pending' ? 'warning' : ($request->status == 'Approved' ? 'info' : ($request->status == 'Completed' ? 'success' : 'danger')) }}">
+                                        {{ $request->status ?? 'Pending' }}
+                                    </span>
                                 </div>
-                                <span class="badge bg-warning">{{ $request->status ?? 'Pending' }}</span>
                             </div>
-                        </div>
                         @endforeach
                     </div>
-                    @else
-                    <p class="text-muted text-center py-3">No recent requests.</p>
-                    @endif
-                </div>
+                @else
+                    <p class="text-muted text-center py-3">No recent requests found.</p>
+                    <div class="text-center">
+                        <a href="{{ route('employee.requests.equipment.form') }}" class="btn btn-primary btn-sm">Make a Request</a>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
 </div>
+   
 @push('scripts')
 <script>
     $(document).ready(function() {

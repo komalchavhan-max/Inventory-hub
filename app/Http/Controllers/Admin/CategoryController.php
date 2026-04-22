@@ -8,12 +8,17 @@ use App\Models\Equipment;
 use Illuminate\Http\Request;
 use App\Http\Requests\CategoryStoreRequest;
 use App\Http\Requests\CategoryUpdateRequest;
+use App\Services\DataTableService;
 
 class CategoryController extends Controller
 {
     public function index(){
-        $categories = Category::withCount('equipment')->get();
-        return view('admin.categories.index', compact('categories'));
+        return view('admin.categories.index');
+    }
+
+    public function getCategoriesData(){
+        $categories = Category::withCount('equipment')->select('categories.*');
+        return DataTableService::categoriesData($categories);
     }
     
     public function create(){

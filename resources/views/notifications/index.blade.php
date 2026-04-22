@@ -7,7 +7,7 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">All Notifications</h5>
-            <button class="btn btn-sm btn-primary" id="markAllReadBtn">Mark all as read</button>
+            <button class="btn btn-sm btn-primary" id="markAllReadPageBtn">Mark all as read</button>
         </div>
         <div class="card-body">
             @if($notifications->count() > 0)
@@ -41,14 +41,14 @@
 
 @push('scripts')
 <script>
-    document.getElementById('markAllReadBtn')?.addEventListener('click', function() {
-        fetch('{{ route("notifications.mark-all-read") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            }
-        }).then(() => window.location.reload());
-    });
+document.getElementById('markAllReadPageBtn')?.addEventListener('click', function() {
+    fetch('{{ route("notifications.mark-all-read") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    }).then(() => window.location.reload());
+});
 </script>
 @endpush
