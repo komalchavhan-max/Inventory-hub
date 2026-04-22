@@ -1,87 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Login - Inventory Hub</title>
-    <link rel="shortcut icon" type="image/png" href="{{ asset('src/assets/images/logos/favicon.png') }}" />
-    <link rel="stylesheet" href="{{ asset('src/assets/css/styles.min.css') }}" />
-</head>
-<body>
-    <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
-        data-sidebar-position="fixed" data-header-position="fixed">
-        <div class="position-relative overflow-hidden text-bg-light min-vh-100 d-flex align-items-center justify-content-center">
-            <div class="d-flex align-items-center justify-content-center w-100">
-                <div class="row justify-content-center w-100">
-                    <div class="col-md-8 col-lg-6 col-xxl-3">
-                        <div class="card mb-0">
-                            <div class="card-body">
-                                <a href="{{ url('/') }}" class="text-nowrap logo-img text-center d-block py-3 w-100">
-                                    <img src="{{ asset('src/assets/images/logos/logo.svg') }}" alt="Logo">
-                                </a>
-                                <p class="text-center">Inventory Management System</p>
-                                
-                                @if($errors->any())
-                                    <div class="alert alert-danger">
-                                        @foreach($errors->all() as $error)
-                                            <p class="mb-0">{{ $error }}</p>
-                                        @endforeach
-                                    </div>
-                                @endif
-                                
-                                @if(session('status'))
-                                    <div class="alert alert-success">
-                                        {{ session('status') }}
-                                    </div>
-                                @endif
-                                @if(session('success'))
-                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                        {{ session('success') }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                    </div>
-                                @endif
-                                <form method="POST" action="{{ route('login') }}">
-                                    @csrf
-                                    <div class="mb-3">
-                                        <label for="email" class="form-label">Email Address</label>
-                                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
-                                               id="email" value="{{ old('email') }}" required autofocus>
-                                        @error('email')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="mb-4">
-                                        <label for="password" class="form-label">Password</label>
-                                        <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" 
-                                               id="password" required>
-                                        @error('password')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-between mb-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input primary" type="checkbox" name="remember" id="remember">
-                                            <label class="form-check-label text-dark" for="remember">
-                                                Remember this Device
-                                            </label>
-                                        </div>
-                                        <a class="text-primary fw-bold" href="{{ route('password.request') }}">Forgot Password ?</a>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100 py-8 fs-4 mb-4">Sign In</button>
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <p class="fs-4 mb-0 fw-bold">New to Inventory Hub?</p>
-                                        <a class="text-primary fw-bold ms-2" href="{{ route('register') }}">Create an account</a>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+@extends('layouts.auth')
+
+@section('title', 'Login')
+@section('brand_heading', 'Welcome back to Inventory Hub.')
+@section('brand_subheading', 'Sign in to access your dashboard, manage equipment, and keep your team moving.')
+
+@section('auth_content')
+    <h2>Sign in to your account</h2>
+    <p class="auth-subtitle">Enter your credentials below to continue.</p>
+
+    @if($errors->any())
+        <div class="alert alert-danger mb-3">
+            @foreach($errors->all() as $error)
+                <p class="mb-0">{{ $error }}</p>
+            @endforeach
         </div>
-    </div>
-    <script src="{{ asset('src/assets/libs/jquery/dist/jquery.min.js') }}"></script>
-    <script src="{{ asset('src/assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
-</body>
-</html>
+    @endif
+
+    @if(session('status'))
+        <div class="alert alert-success mb-3">{{ session('status') }}</div>
+    @endif
+    @if(session('success'))
+        <div class="alert alert-success mb-3">{{ session('success') }}</div>
+    @endif
+
+    <form method="POST" action="{{ route('login') }}" novalidate>
+        @csrf
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Email Address</label>
+            <div class="input-group-ih">
+                <i class="bi bi-envelope input-icon"></i>
+                <input type="email" name="email" id="email"
+                       class="form-control @error('email') is-invalid @enderror"
+                       value="{{ old('email') }}" placeholder="you@company.com" required autofocus>
+            </div>
+            @error('email')<div class="invalid-feedback d-block mt-1">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="mb-2">
+            <label for="password" class="form-label">Password</label>
+            <div class="input-group-ih">
+                <i class="bi bi-lock input-icon"></i>
+                <input type="password" name="password" id="password"
+                       class="form-control @error('password') is-invalid @enderror"
+                       placeholder="Enter your password" required>
+                <button type="button" class="password-toggle" data-toggle-password="password" aria-label="Show password">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
+            @error('password')<div class="invalid-feedback d-block mt-1">{{ $message }}</div>@enderror
+        </div>
+
+        <div class="auth-row-between">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="remember" id="remember">
+                <label class="form-check-label" for="remember">Remember me</label>
+            </div>
+            <a class="auth-link" href="{{ route('password.request') }}">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn-auth">Sign in</button>
+
+        <p class="auth-divider-text">
+            New to Inventory Hub?<a class="auth-link" href="{{ route('register') }}">Create an account</a>
+        </p>
+    </form>
+@endsection

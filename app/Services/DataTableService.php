@@ -7,427 +7,335 @@ use Illuminate\Support\Str;
 
 class DataTableService
 {
-    public static function equipmentData($query){
+    private const STATUS_MAP = [
+        'Available' => 'tint-success',
+        'Assigned'  => 'tint-warning',
+        'In-Repair' => 'tint-danger',
+        'Archived'  => 'tint-slate',
+        'Pending'   => 'tint-warning',
+        'Approved'  => 'tint-info',
+        'Completed' => 'tint-success',
+        'Fulfilled' => 'tint-success',
+        'Rejected'  => 'tint-danger',
+    ];
+
+    private const CONDITION_MAP = [
+        'New'  => 'tint-info',
+        'Good' => 'tint-success',
+        'Fair' => 'tint-warning',
+        'Poor' => 'tint-danger',
+    ];
+
+    private const PRIORITY_MAP = [
+        'Urgent' => 'tint-danger',
+        'High'   => 'tint-warning',
+        'Normal' => 'tint-info',
+        'Low'    => 'tint-slate',
+    ];
+
+    private const URGENCY_MAP = [
+        'Critical' => 'tint-danger',
+        'High'     => 'tint-warning',
+        'Medium'   => 'tint-info',
+        'Low'      => 'tint-success',
+    ];
+
+    private static function pill(string $label, string $tint): string
+    {
+        return '<span class="badge-pill '.$tint.'">'.$label.'</span>';
+    }
+
+    private static function statusPill(string $status): string
+    {
+        $label = $status === 'In-Repair' ? 'In Repair' : $status;
+        return self::pill($label, self::STATUS_MAP[$status] ?? 'tint-slate');
+    }
+
+    private static function emptyCell(): string
+    {
+        return '<span class="text-muted">—</span>';
+    }
+
+    private static function messageButton($message): string
+    {
+        if (!$message) {
+            return self::emptyCell();
+        }
+        return '<button type="button" class="action-btn message view-message-btn" title="View message" aria-label="View message" data-message="'.e($message).'"><i class="bi bi-chat-dots"></i></button>';
+    }
+
+    private static function rejectButton($row, string $equipmentField = 'equipment'): string
+    {
+        $equipmentName = $row->{$equipmentField}->name ?? 'N/A';
+        return '<button type="button" class="action-btn reject reject-btn" title="Reject" aria-label="Reject"
+                data-id="'.$row->id.'"
+                data-employee="'.e($row->user->name ?? 'N/A').'"
+                data-equipment="'.e($equipmentName).'"><i class="bi bi-x-lg"></i></button>';
+    }
+
+    private static function approveButton(string $routeName, $id): string
+    {
+        return '<form action="'.route($routeName, $id).'" method="POST" class="d-inline-flex">
+                    '.csrf_field().'
+                    <button type="submit" class="action-btn approve" title="Approve" aria-label="Approve"><i class="bi bi-check-lg"></i></button>
+                </form>';
+    }
+
+    private static function singleActionForm(string $routeName, $id, string $class, string $icon, string $label): string
+    {
+        return '<form action="'.route($routeName, $id).'" method="POST" class="d-inline-flex">
+                    '.csrf_field().'
+                    <button type="submit" class="action-btn '.$class.'" title="'.$label.'" aria-label="'.$label.'"><i class="bi '.$icon.'"></i></button>
+                </form>';
+    }
+
+    private static function deleteForm(string $routeName, $id, string $confirm, string $actionClass = 'archive', string $icon = 'bi-archive', string $label = 'Archive'): string
+    {
+        return '<form action="'.route($routeName, $id).'" method="POST" class="d-inline-flex" onsubmit="return confirm(\''.$confirm.'\');">
+                    '.csrf_field().'
+                    '.method_field('DELETE').'
+                    <button type="submit" class="action-btn '.$actionClass.'" title="'.$label.'" aria-label="'.$label.'"><i class="bi '.$icon.'"></i></button>
+                </form>';
+    }
+
+    public static function equipmentData($query)
+    {
         return DataTables::of($query)
-            ->filter(function ($query) {
-                if ($search = request()->get('search')['value']) {
-                    $query->where(function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('serial_number', 'like', "%{$search}%");
+            ->filter(function ($q) {
+                if ($search = request()->get('search')['value'] ?? null) {
+                    $q->where(function ($inner) use ($search) {
+                        $inner->where('name', 'like', "%{$search}%")
+                              ->orWhere('serial_number', 'like', "%{$search}%");
                     });
                 }
             })
-            ->addColumn('category_name', function($row){
-                return $row->category->name ?? 'Uncategorized';
-            })
-            ->addColumn('assigned_to_name', function($row){
-                return $row->assignedUser->name ?? 'Not Assigned';
-            })
-            ->addColumn('action', function($row){
-                if ($row->status == 'Archived'){
-                    return '<form action="'.route('admin.equipment.restore', $row->id).'" method="POST" style="display:inline">
-                                '.csrf_field().'
-                                <button type="submit" class="btn btn-sm btn-success">Restore</button>
-                            </form>';
+            ->addColumn('category_name', fn($row) => $row->category->name ?? 'Uncategorized')
+            ->addColumn('assigned_to_name', fn($row) => $row->assignedUser->name ?? 'Not Assigned')
+            ->addColumn('action', function ($row) {
+                $view = '<a href="'.route('admin.equipment.show', $row->id).'" class="action-btn view" title="View" aria-label="View"><i class="bi bi-eye"></i></a>';
+
+                if ($row->status === 'Archived') {
+                    return '<div class="action-group">'.$view
+                        .self::singleActionForm('admin.equipment.restore', $row->id, 'restore', 'bi-arrow-counterclockwise', 'Restore')
+                        .'</div>';
                 }
-                return '
-                    <a href="'.route('admin.equipment.show', $row->id).'" class="btn btn-sm btn-info">View</a>
-                    <a href="'.route('admin.equipment.edit', $row->id).'" class="btn btn-sm btn-warning">Edit</a>
-                    <form action="'.route('admin.equipment.destroy', $row->id).'" method="POST" style="display:inline">
-                        '.csrf_field().'
-                        '.method_field('DELETE').'
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm(\'Archive this equipment?\')">Archive</button>
-                    </form>
-                ';
+
+                $edit = '<a href="'.route('admin.equipment.edit', $row->id).'" class="action-btn edit" title="Edit" aria-label="Edit"><i class="bi bi-pencil"></i></a>';
+                return '<div class="action-group">'.$view.$edit
+                    .self::deleteForm('admin.equipment.destroy', $row->id, 'Archive this equipment?')
+                    .'</div>';
             })
-            ->editColumn('status', function($row){
-                $badges = ['Available' => 'success', 'Assigned' => 'warning', 'In-Repair' => 'danger'];
-                $color = $badges[$row->status] ?? 'secondary';
-                return '<span class="badge bg-'.$color.'">'.$row->status.'</span>';
-            })
-            ->editColumn('condition', function($row){
-                $colors = ['New' => 'primary', 'Good' => 'success', 'Fair' => 'warning', 'Poor' => 'danger'];
-                $color = $colors[$row->condition] ?? 'secondary';
-                return '<span class="badge bg-'.$color.'">'.$row->condition.'</span>';
-            })
+            ->editColumn('status', fn($row) => self::statusPill($row->status))
+            ->editColumn('condition', fn($row) => self::pill($row->condition, self::CONDITION_MAP[$row->condition] ?? 'tint-slate'))
             ->rawColumns(['action', 'status', 'condition'])
             ->make(true);
     }
 
-    public static function categoriesData($query){           // Process Categories DataTable
+    public static function categoriesData($query)
+    {
         return DataTables::of($query)
-            ->addColumn('icon_display', function($row){
-                if ($row->icon) {
-                    return '<i class="'.$row->icon.'"></i> ' . $row->name;
-                }
-                return $row->name;
+            ->addColumn('icon_display', function ($row) {
+                return $row->icon ? '<i class="'.$row->icon.' me-1"></i>'.$row->name : $row->name;
             })
-            ->addColumn('equipment_count', function($row){
-                return '<span class="badge bg-primary">'.$row->equipment_count.'</span>';
+            ->addColumn('equipment_count', function ($row) {
+                return '<span class="badge-pill tint-primary">'.$row->equipment_count.'</span>';
             })
-            ->addColumn('action', function($row){
-                return '
-                    <a href="'.route('admin.categories.edit', $row->id).'" class="btn btn-sm btn-warning">Edit</a>
-                    <form action="'.route('admin.categories.destroy', $row->id).'" method="POST" style="display:inline">
-                        '.csrf_field().'
-                        '.method_field('DELETE').'
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm(\'Delete this category?\')">Delete</button>
-                    </form>
-                ';
+            ->addColumn('action', function ($row) {
+                $edit = '<a href="'.route('admin.categories.edit', $row->id).'" class="action-btn edit" title="Edit" aria-label="Edit"><i class="bi bi-pencil"></i></a>';
+                return '<div class="action-group">'.$edit
+                    .self::deleteForm('admin.categories.destroy', $row->id, 'Delete this category?', 'delete', 'bi-trash', 'Delete')
+                    .'</div>';
             })
-            ->editColumn('description', function($row){
-                return \Str::limit($row->description, 80);
-            })
+            ->editColumn('description', fn($row) => Str::limit($row->description, 80))
             ->rawColumns(['icon_display', 'equipment_count', 'action'])
             ->make(true);
     }
 
-    public static function equipmentRequestsData($query){
+    public static function equipmentRequestsData($query)
+    {
         return DataTables::of($query)
-            ->filter(function ($query) {
-                if ($search = request()->get('search')['value']) {
-                    $query->where(function ($q) use ($search) {
-                        $q->where('id', 'like', "%{$search}%")
-                        ->orWhere('priority', 'like', "%{$search}%")
-                        ->orWhere('status', 'like', "%{$search}%")
-                        ->orWhere('request_reason', 'like', "%{$search}%")
-                        ->orWhereHas('user', function ($user) use ($search) {
-                            $user->where('name', 'like', "%{$search}%")
-                                ->orWhere('email', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('equipment', function ($equip) use ($search) {
-                            $equip->where('name', 'like', "%{$search}%")
-                                    ->orWhere('serial_number', 'like', "%{$search}%");
-                        });
+            ->filter(function ($q) {
+                if ($search = request()->get('search')['value'] ?? null) {
+                    $q->where(function ($inner) use ($search) {
+                        $inner->where('id', 'like', "%{$search}%")
+                              ->orWhere('priority', 'like', "%{$search}%")
+                              ->orWhere('status', 'like', "%{$search}%")
+                              ->orWhere('request_reason', 'like', "%{$search}%")
+                              ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"))
+                              ->orWhereHas('equipment', fn($e) => $e->where('name', 'like', "%{$search}%")->orWhere('serial_number', 'like', "%{$search}%"));
                     });
                 }
             })
-            ->addColumn('employee_name', function($row){
-                return $row->user->name ?? 'N/A';
-            })
-            ->addColumn('equipment_name', function($row){
-                return $row->equipment->name ?? 'N/A';
-            })
-            ->addColumn('admin_message_display', function($row){
-                if ($row->admin_message) {
-                    return '<button type="button" class="btn btn-sm btn-info view-message-btn" data-message="'.e($row->admin_message).'">
-                                <i class="bi bi-chat-dots"></i> View Message
-                            </button>';
+            ->addColumn('employee_name', fn($row) => $row->user->name ?? 'N/A')
+            ->addColumn('equipment_name', fn($row) => $row->equipment->name ?? 'N/A')
+            ->addColumn('admin_message_display', fn($row) => self::messageButton($row->admin_message))
+            ->addColumn('action', function ($row) {
+                if ($row->status !== 'Pending') {
+                    return self::emptyCell();
                 }
-                return '<span class="text-muted">-</span>';
+                return '<div class="action-group">'
+                    .self::approveButton('admin.requests.equipment.approve', $row->id)
+                    .self::rejectButton($row, 'equipment')
+                    .'</div>';
             })
-            ->addColumn('action', function($row){
-                if ($row->status == 'Pending') {
-                    return '
-                        <form action="'.route('admin.requests.equipment.approve', $row->id).'" method="POST" style="display:inline-block">
-                            '.csrf_field().'
-                            <button type="submit" class="btn btn-sm btn-success">Approve</button>
-                        </form>
-                        <button type="button" class="btn btn-sm btn-danger reject-btn" 
-                                data-id="'.$row->id.'" 
-                                data-employee="'.e($row->user->name ?? 'N/A').'" 
-                                data-equipment="'.e($row->equipment->name ?? 'N/A').'">
-                            Reject
-                        </button>
-                    ';
-                }
-                return '<span class="text-muted">-</span>';
-            })
-            ->editColumn('priority', function($row){
-                $colors = ['Urgent' => 'danger', 'Normal' => 'warning', 'Low' => 'info'];
-                $color = $colors[$row->priority] ?? 'secondary';
-                return '<span class="badge bg-'.$color.'">'.$row->priority.'</span>';
-            })
-            ->editColumn('status', function($row){
-                $colors = ['Pending' => 'warning', 'Approved' => 'info', 'Rejected' => 'danger', 'Fulfilled' => 'success'];
-                $color = $colors[$row->status] ?? 'secondary';
-                return '<span class="badge bg-'.$color.'">'.$row->status.'</span>';
-            })
-            ->editColumn('request_date', function($row){
-                // Format the date to d-m-Y H:i (e.g., 22-04-2026 10:35)
-                return $row->request_date ? date('d-m-Y H:i', strtotime($row->request_date)) : '-';
-            })
+            ->editColumn('priority', fn($row) => self::pill($row->priority, self::PRIORITY_MAP[$row->priority] ?? 'tint-slate'))
+            ->editColumn('status', fn($row) => self::statusPill($row->status))
+            ->editColumn('request_date', fn($row) => $row->request_date ? date('d-m-Y H:i', strtotime($row->request_date)) : '—')
             ->rawColumns(['action', 'priority', 'status', 'admin_message_display'])
             ->make(true);
     }
 
-    public static function exchangeRequestsData($query){
+    public static function exchangeRequestsData($query)
+    {
         return DataTables::of($query)
-            ->filter(function ($query) {
-                if ($search = request()->get('search')['value']) {
-                    $query->where(function ($q) use ($search) {
-                        $q->where('id', 'like', "%{$search}%")
-                        ->orWhere('exchange_reason', 'like', "%{$search}%")
-                        ->orWhere('status', 'like', "%{$search}%")
-                        ->orWhere('request_date', 'like', "%{$search}%")
-                        ->orWhereHas('user', function ($user) use ($search) {
-                            $user->where('name', 'like', "%{$search}%")
-                                ->orWhere('email', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('oldEquipment', function ($equip) use ($search) {
-                            $equip->where('name', 'like', "%{$search}%")
-                                    ->orWhere('serial_number', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('requestedEquipment', function ($equip) use ($search) {
-                            $equip->where('name', 'like', "%{$search}%")
-                                    ->orWhere('serial_number', 'like', "%{$search}%");
-                        });
-                        
-                        if (strtolower($search) == 'yes') {
-                            $q->orWhere('has_damage', 1);
-                        } elseif (strtolower($search) == 'no') {
-                            $q->orWhere('has_damage', 0);
-                        }
+            ->filter(function ($q) {
+                if ($search = request()->get('search')['value'] ?? null) {
+                    $q->where(function ($inner) use ($search) {
+                        $inner->where('id', 'like', "%{$search}%")
+                              ->orWhere('exchange_reason', 'like', "%{$search}%")
+                              ->orWhere('status', 'like', "%{$search}%")
+                              ->orWhere('request_date', 'like', "%{$search}%")
+                              ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"))
+                              ->orWhereHas('oldEquipment', fn($e) => $e->where('name', 'like', "%{$search}%")->orWhere('serial_number', 'like', "%{$search}%"))
+                              ->orWhereHas('requestedEquipment', fn($e) => $e->where('name', 'like', "%{$search}%")->orWhere('serial_number', 'like', "%{$search}%"));
+
+                        if (strtolower($search) === 'yes') $inner->orWhere('has_damage', 1);
+                        elseif (strtolower($search) === 'no') $inner->orWhere('has_damage', 0);
                     });
                 }
             })
-            ->addColumn('employee_name', function($row){
-                return $row->user->name ?? 'N/A';
-            })
-            ->addColumn('old_equipment_name', function($row){
-                return $row->oldEquipment->name ?? 'N/A';
-            })
-            ->addColumn('requested_equipment_name', function($row){
-                return $row->requestedEquipment->name ?? 'N/A';
-            })
-            ->addColumn('admin_message_display', function($row){
-                if ($row->admin_message) {
-                    return '<button type="button" class="btn btn-sm btn-info view-message-btn" data-message="'.e($row->admin_message).'">
-                                <i class="bi bi-chat-dots"></i> View Message
-                            </button>';
+            ->addColumn('employee_name', fn($row) => $row->user->name ?? 'N/A')
+            ->addColumn('old_equipment_name', fn($row) => $row->oldEquipment->name ?? 'N/A')
+            ->addColumn('requested_equipment_name', fn($row) => $row->requestedEquipment->name ?? 'N/A')
+            ->addColumn('admin_message_display', fn($row) => self::messageButton($row->admin_message))
+            ->addColumn('action', function ($row) {
+                if ($row->status === 'Pending') {
+                    return '<div class="action-group">'
+                        .self::approveButton('admin.requests.exchange.approve', $row->id)
+                        .self::rejectButton($row, 'requestedEquipment')
+                        .'</div>';
                 }
-                return '<span class="text-muted">-</span>';
-            })
-            ->addColumn('action', function($row){
-                if ($row->status == 'Pending'){
-                    return '
-                        <form action="'.route('admin.requests.exchange.approve', $row->id).'" method="POST" style="display:inline-block">
-                            '.csrf_field().'
-                            <button type="submit" class="btn btn-sm btn-success">Approve</button>
-                        </form>
-                        <button type="button" class="btn btn-sm btn-danger reject-btn" 
-                                data-id="'.$row->id.'" 
-                                data-employee="'.e($row->user->name ?? 'N/A').'" 
-                                data-equipment="'.e($row->requestedEquipment->name ?? 'N/A').'">
-                            Reject
-                        </button>
-                    ';
+                if ($row->status === 'Approved') {
+                    return '<div class="action-group">'
+                        .self::singleActionForm('admin.requests.exchange.process', $row->id, 'process', 'bi-arrow-right-circle', 'Process')
+                        .'</div>';
                 }
-                if ($row->status == 'Approved'){
-                    return '
-                        <form action="'.route('admin.requests.exchange.process', $row->id).'" method="POST" style="display:inline-block">
-                            '.csrf_field().'
-                            <button type="submit" class="btn btn-sm btn-primary">Process</button>
-                        </form>
-                    ';
-                }
-                return '<span class="text-muted">-</span>';
+                return self::emptyCell();
             })
-            ->editColumn('has_damage', function($row){
-                return $row->has_damage ? '<span class="badge bg-danger">Yes</span>' : '<span class="badge bg-success">No</span>';
-            })
-            ->editColumn('status', function($row){
-                $colors = ['Pending' => 'warning', 'Approved' => 'info', 'Completed' => 'success', 'Rejected' => 'danger'];
-                $color = $colors[$row->status] ?? 'secondary';
-                return '<span class="badge bg-'.$color.'">'.$row->status.'</span>';
-            })
-            ->editColumn('request_date', function($row){
-                return $row->request_date ? date('d-m-Y', strtotime($row->request_date)) : '-';
-            })
+            ->editColumn('has_damage', fn($row) => $row->has_damage
+                ? self::pill('Yes', 'tint-danger')
+                : self::pill('No', 'tint-success'))
+            ->editColumn('status', fn($row) => self::statusPill($row->status))
+            ->editColumn('request_date', fn($row) => $row->request_date ? date('d-m-Y', strtotime($row->request_date)) : '—')
             ->rawColumns(['action', 'has_damage', 'status', 'admin_message_display'])
             ->make(true);
     }
 
-   public static function repairRequestsData($query){
+    public static function repairRequestsData($query)
+    {
         return DataTables::of($query)
-            ->filter(function ($query) {     
-                if ($search = request()->get('search')['value']) {
-                    $query->where(function ($q) use ($search) {
-                        $q->orWhere('id', 'like', "%{$search}%");
-
-                        $q->orWhere('issue_description', 'like', "%{$search}%");
-
-                        $q->orWhere('status', 'like', "%{$search}%");
-
-                        $q->orWhere('urgency', 'like', "%{$search}%");
-
-                        $q->orWhere('location', 'like', "%{$search}%");
-
-                        $q->orWhere('request_date', 'like', "%{$search}%");
-
-                        $q->orWhereHas('user', function ($user) use ($search) {
-                            $user->where('name', 'like', "%{$search}%")
-                                ->orWhere('email', 'like', "%{$search}%");
-                        });
-
-                        $q->orWhereHas('equipment', function ($equip) use ($search) {
-                            $equip->where('name', 'like', "%{$search}%")
-                                ->orWhere('serial_number', 'like', "%{$search}%");
-                        });
+            ->filter(function ($q) {
+                if ($search = request()->get('search')['value'] ?? null) {
+                    $q->where(function ($inner) use ($search) {
+                        $inner->where('id', 'like', "%{$search}%")
+                              ->orWhere('issue_description', 'like', "%{$search}%")
+                              ->orWhere('status', 'like', "%{$search}%")
+                              ->orWhere('urgency', 'like', "%{$search}%")
+                              ->orWhere('location', 'like', "%{$search}%")
+                              ->orWhere('request_date', 'like', "%{$search}%")
+                              ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"))
+                              ->orWhereHas('equipment', fn($e) => $e->where('name', 'like', "%{$search}%")->orWhere('serial_number', 'like', "%{$search}%"));
                     });
                 }
             })
-            ->addColumn('employee_name', function($row){
-                return $row->user->name ?? 'N/A';
-            })
-            ->addColumn('equipment_name', function($row){
-                return $row->equipment->name ?? 'N/A';
-            })
-            ->addColumn('admin_message_display', function($row){
-                if ($row->admin_message) {
-                    return '<button type="button" class="btn btn-sm btn-info view-message-btn" data-message="'.e($row->admin_message).'">
-                                <i class="bi bi-chat-dots"></i> View Message
-                            </button>';
+            ->addColumn('employee_name', fn($row) => $row->user->name ?? 'N/A')
+            ->addColumn('equipment_name', fn($row) => $row->equipment->name ?? 'N/A')
+            ->addColumn('admin_message_display', fn($row) => self::messageButton($row->admin_message))
+            ->addColumn('action', function ($row) {
+                if ($row->status === 'Pending') {
+                    return '<div class="action-group">'
+                        .self::approveButton('admin.requests.repair.approve', $row->id)
+                        .self::rejectButton($row, 'equipment')
+                        .'</div>';
                 }
-                return '<span class="text-muted">-</span>';
-            })
-            ->addColumn('action', function($row){
-                if ($row->status == 'Pending') {
-                    return '
-                        <form action="'.route('admin.requests.repair.approve', $row->id).'" method="POST" style="display:inline-block">
-                            '.csrf_field().'
-                            <button type="submit" class="btn btn-sm btn-success">Approve</button>
-                        </form>
-                        <button type="button" class="btn btn-sm btn-danger reject-btn" 
-                                data-id="'.$row->id.'" 
-                                data-employee="'.e($row->user->name ?? 'N/A').'" 
-                                data-equipment="'.e($row->equipment->name ?? 'N/A').'">
-                            Reject
-                        </button>
-                    ';
+                if ($row->status === 'Approved') {
+                    return '<div class="action-group">'
+                        .self::singleActionForm('admin.requests.repair.complete', $row->id, 'complete', 'bi-check2-circle', 'Complete')
+                        .'</div>';
                 }
-                if ($row->status == 'Approved') {
-                    return '
-                        <form action="'.route('admin.requests.repair.complete', $row->id).'" method="POST" style="display:inline-block">
-                            '.csrf_field().'
-                            <button type="submit" class="btn btn-sm btn-primary">Complete</button>
-                        </form>
-                    ';
-                }
-                return '<span class="text-muted">-</span>';
+                return self::emptyCell();
             })
-            ->editColumn('urgency', function($row){
-                $colors = ['Critical' => 'danger', 'High' => 'warning', 'Medium' => 'info', 'Low' => 'success'];
-                $color = $colors[$row->urgency] ?? 'secondary';
-                return '<span class="badge bg-'.$color.'">'.$row->urgency.'</span>';
-            })
-            ->editColumn('status', function($row){
-                $colors = ['Pending' => 'warning', 'Approved' => 'info', 'Completed' => 'success', 'Rejected' => 'danger'];
-                $color = $colors[$row->status] ?? 'secondary';
-                return '<span class="badge bg-'.$color.'">'.$row->status.'</span>';
-            })
-            ->editColumn('request_date', function($row){
-                return $row->request_date ? date('d-m-Y', strtotime($row->request_date)) : '-';
-            })
+            ->editColumn('urgency', fn($row) => self::pill($row->urgency, self::URGENCY_MAP[$row->urgency] ?? 'tint-slate'))
+            ->editColumn('status', fn($row) => self::statusPill($row->status))
+            ->editColumn('request_date', fn($row) => $row->request_date ? date('d-m-Y', strtotime($row->request_date)) : '—')
             ->rawColumns(['action', 'urgency', 'status', 'admin_message_display'])
             ->make(true);
     }
 
-    public static function returnRequestsData($query){
+    public static function returnRequestsData($query)
+    {
         return DataTables::of($query)
-            ->filter(function ($query) {
-                if ($search = request()->get('search')['value']) {
-                    $query->where(function ($q) use ($search) {
-                        $q->where('id', 'like', "%{$search}%")
-                        ->orWhere('return_reason', 'like', "%{$search}%")
-                        ->orWhere('equipment_condition', 'like', "%{$search}%")
-                        ->orWhere('missing_parts', 'like', "%{$search}%")
-                        ->orWhere('status', 'like', "%{$search}%")
-                        ->orWhere('return_date', 'like', "%{$search}%")
-                        ->orWhereHas('user', function ($user) use ($search) {
-                            $user->where('name', 'like', "%{$search}%")
-                                ->orWhere('email', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('equipment', function ($equip) use ($search) {
-                            $equip->where('name', 'like', "%{$search}%")
-                                    ->orWhere('serial_number', 'like', "%{$search}%");
-                        });
+            ->filter(function ($q) {
+                if ($search = request()->get('search')['value'] ?? null) {
+                    $q->where(function ($inner) use ($search) {
+                        $inner->where('id', 'like', "%{$search}%")
+                              ->orWhere('return_reason', 'like', "%{$search}%")
+                              ->orWhere('equipment_condition', 'like', "%{$search}%")
+                              ->orWhere('missing_parts', 'like', "%{$search}%")
+                              ->orWhere('status', 'like', "%{$search}%")
+                              ->orWhere('return_date', 'like', "%{$search}%")
+                              ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"))
+                              ->orWhereHas('equipment', fn($e) => $e->where('name', 'like', "%{$search}%")->orWhere('serial_number', 'like', "%{$search}%"));
                     });
                 }
             })
-            ->addColumn('employee_name', function($row){
-                return $row->user->name ?? 'N/A';
-            })
-            ->addColumn('equipment_name', function($row){
-                return $row->equipment->name ?? 'N/A';
-            })
-            ->addColumn('admin_message_display', function($row){
-                if ($row->admin_message){
-                    return '<button type="button" class="btn btn-sm btn-info view-message-btn" data-message="'.e($row->admin_message).'">
-                                <i class="bi bi-chat-dots"></i> View Message
-                            </button>';
+            ->addColumn('employee_name', fn($row) => $row->user->name ?? 'N/A')
+            ->addColumn('equipment_name', fn($row) => $row->equipment->name ?? 'N/A')
+            ->addColumn('admin_message_display', fn($row) => self::messageButton($row->admin_message))
+            ->addColumn('action', function ($row) {
+                if ($row->status === 'Pending') {
+                    return '<div class="action-group">'
+                        .self::approveButton('admin.requests.return.approve', $row->id)
+                        .self::rejectButton($row, 'equipment')
+                        .'</div>';
                 }
-                return '<span class="text-muted">-</span>';
-            })
-            ->addColumn('action', function($row){
-                if ($row->status == 'Pending'){
-                    return '
-                        <form action="'.route('admin.requests.return.approve', $row->id).'" method="POST" style="display:inline-block">
-                            '.csrf_field().'
-                            <button type="submit" class="btn btn-sm btn-success">Approve</button>
-                        </form>
-                        <button type="button" class="btn btn-sm btn-danger reject-btn" 
-                                data-id="'.$row->id.'" 
-                                data-employee="'.e($row->user->name ?? 'N/A').'" 
-                                data-equipment="'.e($row->equipment->name ?? 'N/A').'">
-                            Reject
-                        </button>
-                    ';
+                if ($row->status === 'Approved') {
+                    return '<div class="action-group">'
+                        .self::singleActionForm('admin.requests.return.complete', $row->id, 'complete', 'bi-check2-circle', 'Complete')
+                        .'</div>';
                 }
-                if ($row->status == 'Approved'){
-                    return '
-                        <form action="'.route('admin.requests.return.complete', $row->id).'" method="POST" style="display:inline-block">
-                            '.csrf_field().'
-                            <button type="submit" class="btn btn-sm btn-primary">Complete</button>
-                        </form>
-                    ';
-                }
-                return '<span class="text-muted">-</span>';
+                return self::emptyCell();
             })
-            ->editColumn('status', function($row){
-                $colors = ['Pending' => 'warning', 'Approved' => 'info', 'Completed' => 'success', 'Rejected' => 'danger'];
-                $color = $colors[$row->status] ?? 'secondary';
-                return '<span class="badge bg-'.$color.'">'.$row->status.'</span>';
-            })
-            ->editColumn('return_date', function($row){
-                return $row->return_date ? date('d-m-Y', strtotime($row->return_date)) : '-';
-            })
+            ->editColumn('status', fn($row) => self::statusPill($row->status))
+            ->editColumn('return_date', fn($row) => $row->return_date ? date('d-m-Y', strtotime($row->return_date)) : '—')
             ->rawColumns(['action', 'status', 'admin_message_display'])
             ->make(true);
     }
 
-    public static function maintenanceLogsData($query){
+    public static function maintenanceLogsData($query)
+    {
         return DataTables::of($query)
-            ->filter(function ($query) {
-                if ($search = request()->get('search')['value']) {
-                    $query->where(function ($q) use ($search) {
-                        $q->where('id', 'like', "%{$search}%")
-                        ->orWhere('issue_description', 'like', "%{$search}%")
-                        ->orWhere('technician_name', 'like', "%{$search}%")
-                        ->orWhere('cost', 'like', "%{$search}%")
-                        ->orWhere('repair_date', 'like', "%{$search}%")
-                        ->orWhereHas('equipment', function ($equip) use ($search) {
-                            $equip->where('name', 'like', "%{$search}%")
-                                    ->orWhere('serial_number', 'like', "%{$search}%");
-                        });
+            ->filter(function ($q) {
+                if ($search = request()->get('search')['value'] ?? null) {
+                    $q->where(function ($inner) use ($search) {
+                        $inner->where('id', 'like', "%{$search}%")
+                              ->orWhere('issue_description', 'like', "%{$search}%")
+                              ->orWhere('technician_name', 'like', "%{$search}%")
+                              ->orWhere('cost', 'like', "%{$search}%")
+                              ->orWhere('repair_date', 'like', "%{$search}%")
+                              ->orWhereHas('equipment', fn($e) => $e->where('name', 'like', "%{$search}%")->orWhere('serial_number', 'like', "%{$search}%"));
                     });
                 }
             })
-            ->addColumn('equipment_name', function($row){
-                return $row->equipment->name ?? 'N/A';
+            ->addColumn('equipment_name', fn($row) => $row->equipment->name ?? 'N/A')
+            ->addColumn('action', function ($row) {
+                return '<div class="action-group">
+                            <a href="'.route('admin.maintenance-logs.show', $row->id).'" class="action-btn view" title="View" aria-label="View"><i class="bi bi-eye"></i></a>
+                        </div>';
             })
-            ->addColumn('action', function($row){
-                return '<a href="'.route('admin.maintenance-logs.show', $row->id).'" class="btn btn-sm btn-info">View</a>';
-            })
-            ->editColumn('cost', function($row){
-                return '$'.number_format($row->cost, 2);
-            })
-            ->editColumn('repair_date', function($row){
-                return $row->repair_date ? date('d-m-Y', strtotime($row->repair_date)) : '-';
-            })
-            ->editColumn('created_at', function($row){
-                return $row->created_at ? date('d-m-Y', strtotime($row->created_at)) : '-';
-            })
+            ->editColumn('cost', fn($row) => '$'.number_format($row->cost, 2))
+            ->editColumn('repair_date', fn($row) => $row->repair_date ? date('d-m-Y', strtotime($row->repair_date)) : '—')
+            ->editColumn('created_at', fn($row) => $row->created_at ? date('d-m-Y', strtotime($row->created_at)) : '—')
             ->rawColumns(['action'])
             ->make(true);
     }

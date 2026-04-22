@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"Illuminate\\\\\\\\\\\\DB\" app/ --include=\"*.php\")",
+      "Bash(php -r 'require '\\\\''vendor/autoload.php'\\\\''; $app = require '\\\\''bootstrap/app.php'\\\\''; $app->make\\('\\\\''Illuminate\\\\Contracts\\\\Console\\\\Kernel'\\\\''\\)->bootstrap\\(\\); $categories = DB::table\\('\\\\''categories'\\\\''\\)->get\\(['\\\\''id'\\\\'','\\\\''name'\\\\'']\\); foreach\\($categories as $c\\){ echo $c->id.'\\\\'' - '\\\\''.$c->name.PHP_EOL; } echo '\\\\''---EQUIPMENT---'\\\\''.PHP_EOL; echo '\\\\''count: '\\\\''.DB::table\\('\\\\''equipment'\\\\''\\)->count\\(\\).PHP_EOL; $eq = DB::table\\('\\\\''equipment'\\\\''\\)->orderBy\\('\\\\''id'\\\\'','\\\\''desc'\\\\''\\)->limit\\(3\\)->get\\(\\); foreach\\($eq as $e\\){ print_r\\($e\\); }')",
+      "Bash(php -r 'require '\\\\''vendor/autoload.php'\\\\''; $app = require '\\\\''bootstrap/app.php'\\\\''; $app->make\\('\\\\''Illuminate\\\\Contracts\\\\Console\\\\Kernel'\\\\''\\)->bootstrap\\(\\); echo '\\\\''Total equipment rows: '\\\\''.DB::table\\('\\\\''equipment'\\\\''\\)->count\\(\\).PHP_EOL; echo PHP_EOL.'\\\\''Added in this batch \\(IH- serials\\):'\\\\''.PHP_EOL; foreach\\(DB::table\\('\\\\''equipment'\\\\''\\)->where\\('\\\\''serial_number'\\\\'','\\\\''like'\\\\'','\\\\''IH-%'\\\\''\\)->orderBy\\('\\\\''id'\\\\''\\)->get\\(['\\\\''id'\\\\'','\\\\''name'\\\\'','\\\\''serial_number'\\\\'','\\\\''category_id'\\\\'','\\\\''status'\\\\'','\\\\''condition'\\\\'']\\) as $e\\){ echo str_pad\\($e->id,3\\).'\\\\'' | '\\\\''.str_pad\\($e->serial_number,12\\).'\\\\'' | cat '\\\\''.$e->category_id.'\\\\'' | '\\\\''.$e->status.'\\\\'' | '\\\\''.$e->condition.'\\\\'' | '\\\\''.$e->name.PHP_EOL; }')",
+      "Bash(php artisan *)",
+      "Bash(php -l resources/views/layouts/admin.blade.php)",
+      "Bash(php -l resources/views/admin/dashboard/index.blade.php)",
+      "Bash(php -l resources/views/layouts/auth.blade.php)",
+      "Bash(php -l resources/views/auth/login.blade.php)",
+      "Bash(php -l resources/views/auth/register.blade.php)",
+      "Bash(curl -s -o /dev/null -w \"login=%{http_code} \" http://127.0.0.1:8765/login)",
+      "Bash(curl -s -o /dev/null -w \"register=%{http_code}\\\\n\" http://127.0.0.1:8765/register)",
+      "Bash(curl -s http://127.0.0.1:8765/login)",
+      "Bash(php -l app/Http/Controllers/Admin/EquipmentController.php)",
+      "Bash(php -l resources/views/admin/equipment/index.blade.php)",
+      "Bash(php -l resources/views/layouts/employee.blade.php)",
+      "Bash(php -l resources/views/employee/dashboard/index.blade.php)"
+    ]
+  }
+}

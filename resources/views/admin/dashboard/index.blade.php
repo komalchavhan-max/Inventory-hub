@@ -3,170 +3,134 @@
 @section('title', 'Dashboard')
 
 @section('content')
-<div class="container-fluid">
-    <!-- Welcome Row -->
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h4 class="mb-1">Welcome back, {{ Auth::user()->name }}!</h4>
-                    <p class="mb-0 opacity-75">Here's what's happening with your inventory today.</p>
-                </div>
+<div class="welcome-banner">
+    <div>
+        <h4>Welcome back, {{ Auth::user()->name }}!</h4>
+        <p>Here's what's happening with your inventory today.</p>
+    </div>
+    <div class="welcome-icon d-none d-sm-grid">
+        <i class="bi bi-graph-up-arrow"></i>
+    </div>
+</div>
+
+<div class="row g-3 mb-1">
+    <div class="col-xl col-lg-4 col-md-6">
+        <div class="card stat-card mb-0">
+            <div class="stat-icon tint-primary"><i class="bi bi-box-seam"></i></div>
+            <div>
+                <div class="stat-label">Total Equipment</div>
+                <div class="stat-value">{{ $totalEquipment ?? 0 }}</div>
             </div>
         </div>
     </div>
-    
-    <!-- Statistics Cards -->
-    <div class="row">
-        <div class="col-lg-3 col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <h6 class="text-muted mb-1">Total Equipment</h6>
-                            <h3 class="mb-0">{{ $totalEquipment ?? 0 }}</h3>
-                        </div>
-                        <div class="bg-primary bg-opacity-10 rounded p-3">
-                            <iconify-icon icon="solar:computer-line-duotone" class="fs-4 text-primary"></iconify-icon>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <h6 class="text-muted mb-1">Available</h6>
-                            <h3 class="mb-0 text-success">{{ $available ?? 0 }}</h3>
-                        </div>
-                        <div class="bg-success bg-opacity-10 rounded p-3">
-                            <iconify-icon icon="solar:check-circle-line-duotone" class="fs-4 text-success"></iconify-icon>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <h6 class="text-muted mb-1">Assigned</h6>
-                            <h3 class="mb-0 text-warning">{{ $assigned ?? 0 }}</h3>
-                        </div>
-                        <div class="bg-warning bg-opacity-10 rounded p-3">
-                            <iconify-icon icon="solar:user-line-duotone" class="fs-4 text-warning"></iconify-icon>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <h6 class="text-muted mb-1">Archived</h6>
-                            <h3 class="mb-0 text-warning">{{ $archived ?? 0 }}</h3>
-                        </div>
-                        <div class="bg-warning bg-opacity-10 rounded p-3">
-                            <iconify-icon icon="solar:user-line-duotone" class="fs-4 text-warning"></iconify-icon>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <h6 class="text-muted mb-1">In Repair</h6>
-                            <h3 class="mb-0 text-danger">{{ $inRepair ?? 0 }}</h3>
-                        </div>
-                        <div class="bg-danger bg-opacity-10 rounded p-3">
-                            <iconify-icon icon="solar:tools-line-duotone" class="fs-4 text-danger"></iconify-icon>
-                        </div>
-                    </div>
-                </div>
+    <div class="col-xl col-lg-4 col-md-6">
+        <div class="card stat-card mb-0">
+            <div class="stat-icon tint-success"><i class="bi bi-check-circle"></i></div>
+            <div>
+                <div class="stat-label">Available</div>
+                <div class="stat-value text-success-ih">{{ $available ?? 0 }}</div>
             </div>
         </div>
     </div>
-    
-    <!-- Recent Equipment and Pending Requests -->
-    <div class="row">
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Recent Equipment Added</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
+    <div class="col-xl col-lg-4 col-md-6">
+        <div class="card stat-card mb-0">
+            <div class="stat-icon tint-warning"><i class="bi bi-person-check"></i></div>
+            <div>
+                <div class="stat-label">Assigned</div>
+                <div class="stat-value text-warning-ih">{{ $assigned ?? 0 }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl col-lg-4 col-md-6">
+        <div class="card stat-card mb-0">
+            <div class="stat-icon tint-slate"><i class="bi bi-archive"></i></div>
+            <div>
+                <div class="stat-label">Archived</div>
+                <div class="stat-value">{{ $archived ?? 0 }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl col-lg-4 col-md-6">
+        <div class="card stat-card mb-0">
+            <div class="stat-icon tint-danger"><i class="bi bi-tools"></i></div>
+            <div>
+                <div class="stat-label">In Repair</div>
+                <div class="stat-value text-danger-ih">{{ $inRepair ?? 0 }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-7">
+        <div class="card mb-0">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h5 class="mb-0">Recent Equipment Added</h5>
+                <a href="{{ route('admin.equipment.index') }}" class="btn btn-sm btn-outline-primary">View all</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Serial Number</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($recentEquipment ?? [] as $item)
+                                @php
+                                    $statusMap = [
+                                        'Available' => ['tint-success', 'Available'],
+                                        'Assigned'  => ['tint-warning', 'Assigned'],
+                                        'In-Repair' => ['tint-danger',  'In Repair'],
+                                        'Archived'  => ['tint-slate',   'Archived'],
+                                    ];
+                                    [$cls, $lbl] = $statusMap[$item->status] ?? ['tint-slate', $item->status];
+                                @endphp
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Serial Number</th>
-                                    <th>Category</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($recentEquipment ?? [] as $item)
-                                <tr>
-                                    <td>{{ $item->name }}</td>
-                                    <td>{{ $item->serial_number }}</td>
+                                    <td class="fw-medium">{{ $item->name }}</td>
+                                    <td class="text-muted">{{ $item->serial_number }}</td>
                                     <td>{{ $item->category->name ?? 'Uncategorized' }}</td>
-                                    <td>
-                                        @if($item->status == 'Available')
-                                            <span class="badge bg-success">Available</span>
-                                        @elseif($item->status == 'Assigned')
-                                            <span class="badge bg-warning">Assigned</span>
-                                        @elseif($item->status == 'In-Repair')
-                                            <span class="badge bg-danger">In Repair</span>
-                                        @elseif($item->status == 'Archived')
-                                            <span class="badge bg-secondary">Archived</span>
-                                        @endif
-                                    </td>
+                                    <td><span class="badge-pill {{ $cls }}">{{ $lbl }}</span></td>
                                 </tr>
-                                @empty
+                            @empty
                                 <tr>
-                                    <td colspan="4" class="text-center">No equipment found</td>
+                                    <td colspan="4" class="text-center text-muted py-4">No equipment found</td>
                                 </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Pending Requests</h5>
-                </div>
-                <div class="card-body">
-                    <div class="list-group">
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            Equipment Requests
-                            <span class="badge bg-warning rounded-pill">{{ $pendingEquipmentRequests ?? 0 }}</span>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            Exchange Requests
-                            <span class="badge bg-warning rounded-pill">{{ $pendingExchangeRequests ?? 0 }}</span>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            Repair Requests
-                            <span class="badge bg-warning rounded-pill">{{ $pendingRepairRequests ?? 0 }}</span>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            Return Requests
-                            <span class="badge bg-warning rounded-pill">{{ $pendingReturnRequests ?? 0 }}</span>
-                        </div>
-                    </div>
-                </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card mb-0">
+            <div class="card-header">
+                <h5 class="mb-0">Pending Requests</h5>
+            </div>
+            <div class="card-body p-0">
+                @php
+                    $pendingRows = [
+                        ['Equipment Requests', $pendingEquipmentRequests ?? 0, 'bi-inbox',              'tint-primary', route('admin.requests.equipment')],
+                        ['Exchange Requests',  $pendingExchangeRequests  ?? 0, 'bi-arrow-repeat',       'tint-info',    route('admin.requests.exchange')],
+                        ['Repair Requests',    $pendingRepairRequests    ?? 0, 'bi-tools',              'tint-danger',  route('admin.requests.repair')],
+                        ['Return Requests',    $pendingReturnRequests    ?? 0, 'bi-arrow-return-left',  'tint-warning', route('admin.requests.return')],
+                    ];
+                @endphp
+                @foreach($pendingRows as [$label, $count, $icon, $cls, $url])
+                    <a href="{{ $url }}" class="pending-item">
+                        <span class="label">
+                            <span class="label-icon {{ $cls }}"><i class="bi {{ $icon }}"></i></span>
+                            {{ $label }}
+                        </span>
+                        <span class="pending-count {{ $count == 0 ? 'zero' : '' }}">{{ $count }}</span>
+                    </a>
+                @endforeach
             </div>
         </div>
     </div>

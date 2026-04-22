@@ -3,70 +3,63 @@
 @section('title', 'Return Requests')
 
 @section('content')
-<div class="container-fluid">
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Return Requests</h5>
-            <div>
-                <span class="badge bg-warning p-2">Pending: <span id="pendingCount">0</span></span>
-                <span class="badge bg-info p-2">Approved: <span id="approvedCount">0</span></span>
-                <span class="badge bg-success p-2">Completed: <span id="completedCount">0</span></span>
-                <span class="badge bg-danger p-2">Rejected: <span id="rejectedCount">0</span></span>
-            </div>
+<div class="card mb-0">
+    <div class="card-header d-flex flex-wrap gap-3 justify-content-between align-items-center">
+        <h5 class="mb-0">Return Requests</h5>
+        <div class="d-flex flex-wrap gap-2">
+            <span class="count-chip tint-warning">Pending <span class="count-value" id="pendingCount">0</span></span>
+            <span class="count-chip tint-info">Approved <span class="count-value" id="approvedCount">0</span></span>
+            <span class="count-chip tint-success">Completed <span class="count-value" id="completedCount">0</span></span>
+            <span class="count-chip tint-danger">Rejected <span class="count-value" id="rejectedCount">0</span></span>
         </div>
-        <div class="card-body">
-            @if(session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
-            
-            <div class="table-responsive">
-                <table class="table table-bordered" id="returnRequestsTable">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Employee</th>
-                            <th>Equipment</th>
-                            <th>Return Reason</th>
-                            <th>Condition</th>
-                            <th>Return Date</th>
-                            <th>Status</th>
-                            <th>Admin Message</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Data loaded via AJAX -->
-                    </tbody>
-                </table>
-            </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table align-middle" id="returnRequestsTable" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Employee</th>
+                        <th>Equipment</th>
+                        <th>Return Reason</th>
+                        <th>Condition</th>
+                        <th>Return Date</th>
+                        <th>Status</th>
+                        <th>Admin Message</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
     </div>
 </div>
 
-<!-- Reject Modal Template -->
-<div id="rejectModalTemplate" style="display: none;">
+<div id="rejectModalTemplate" style="display:none;">
     <div class="modal fade" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form method="POST">
                     @csrf
-                    <div class="modal-header bg-danger text-white">
-                        <h5 class="modal-title">Reject Return Request</h5>
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-x-circle text-danger me-2"></i>Reject Return Request</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <p><strong>Employee:</strong> <span class="employee-name"></span></p>
-                        <p><strong>Equipment:</strong> <span class="equipment-name"></span></p>
-                        <div class="mb-3">
-                            <label class="form-label">Reason for Rejection <span class="text-danger">*</span></label>
-                            <textarea name="rejection_message" class="form-control" rows="4" required 
-                                placeholder="Please explain why this return request is being rejected..."></textarea>
+                        <p class="small text-muted mb-3">
+                            <strong class="text-dark">Employee:</strong> <span class="employee-name"></span><br>
+                            <strong class="text-dark">Equipment:</strong> <span class="equipment-name"></span>
+                        </p>
+                        <div>
+                            <label class="form-label">Reason for rejection <span class="text-danger">*</span></label>
+                            <textarea name="rejection_message" class="form-control" rows="4" required
+                                      placeholder="Please explain why this return request is being rejected..."></textarea>
                             <small class="text-muted">This message will be sent to the employee.</small>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">Send & Reject</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger btn-sm">Send &amp; Reject</button>
                     </div>
                 </form>
             </div>
@@ -74,43 +67,64 @@
     </div>
 </div>
 
-<!-- Message View Modal Template -->
-<div id="messageModalTemplate" style="display: none;">
+<div id="messageModalTemplate" style="display:none;">
     <div class="modal fade" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title">Admin Message</h5>
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-chat-dots text-primary me-2"></i>Admin Message</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p><strong>Reason for Rejection:</strong></p>
-                    <div class="alert alert-danger message-content"></div>
+                    <div class="small text-muted mb-1">Reason for rejection</div>
+                    <div class="alert alert-danger message-content mb-0"></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 @endsection
+
+@push('styles')
+<style>
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter { margin-bottom: 16px; color: var(--ih-text-muted); font-size: 0.88rem; }
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid var(--ih-border); border-radius: 8px; padding: 6px 10px;
+        font-size: 0.875rem; background: #fff; color: var(--ih-text);
+    }
+    .dataTables_wrapper .dataTables_filter input { min-width: 220px; }
+    .dataTables_wrapper .dataTables_length select:focus,
+    .dataTables_wrapper .dataTables_filter input:focus {
+        outline: none; border-color: var(--ih-primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+    }
+    .dataTables_wrapper .dataTables_info { color: var(--ih-text-muted); font-size: 0.85rem; padding-top: 14px; }
+    .dataTables_wrapper .pagination { margin-top: 14px; gap: 4px; }
+    .dataTables_wrapper .page-link {
+        border: 1px solid var(--ih-border); border-radius: 8px !important;
+        color: var(--ih-text-muted); font-size: 0.85rem; padding: 6px 12px;
+    }
+    .dataTables_wrapper .page-item.active .page-link {
+        background: var(--ih-primary); border-color: var(--ih-primary); color: #fff;
+    }
+    .dataTables_wrapper .page-link:hover {
+        background: var(--ih-primary-light); color: var(--ih-primary); border-color: #c7d2fe;
+    }
+    #returnRequestsTable td:last-child { text-align: right; }
+</style>
+@endpush
 
 @push('scripts')
 <script>
-$(document).ready(function() {
+$(function () {
     var table = $('#returnRequestsTable').DataTable({
         processing: true,
         serverSide: true,
-        ajax: {
-            url: '{{ url("/admin/requests/return-data") }}',
-            type: 'GET',
-            dataSrc: function(json) {
-                console.log('Return data received:', json);
-                return json.data;
-            }
-        },
+        ajax: { url: '{{ url("/admin/requests/return-data") }}', type: 'GET' },
         columns: [
             { data: 'id', name: 'id' },
             { data: 'employee_name', name: 'employee_name' },
@@ -120,63 +134,48 @@ $(document).ready(function() {
             { data: 'return_date', name: 'return_date' },
             { data: 'status', name: 'status' },
             { data: 'admin_message_display', name: 'admin_message_display', orderable: false, searchable: false },
-            { data: 'action', name: 'action', orderable: false, searchable: false }
+            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-end' }
         ],
         pageLength: 10,
         order: [[0, 'desc']],
         language: {
-            search: "Search:",
-            lengthMenu: "Show _MENU_ entries",
-            info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            paginate: {
-                first: "First",
-                last: "Last",
-                next: "Next",
-                previous: "Previous"
-            }
+            search: "", searchPlaceholder: "Search requests...",
+            lengthMenu: "Show _MENU_", info: "Showing _START_–_END_ of _TOTAL_",
+            infoEmpty: "No entries", infoFiltered: "(filtered from _MAX_)",
+            paginate: { first: "«", last: "»", next: "›", previous: "‹" }
         },
-        drawCallback: function() {
+        drawCallback: function () {
             var api = this.api();
             var pending = 0, approved = 0, completed = 0, rejected = 0;
-            
-            api.rows().data().each(function(row) {
-                if (row.status && row.status.includes('Pending')) pending++;
-                if (row.status && row.status.includes('Approved')) approved++;
-                if (row.status && row.status.includes('Completed')) completed++;
-                if (row.status && row.status.includes('Rejected')) rejected++;
+            api.rows().data().each(function (row) {
+                if (row.status && row.status.indexOf('Pending') !== -1) pending++;
+                if (row.status && row.status.indexOf('Approved') !== -1) approved++;
+                if (row.status && row.status.indexOf('Completed') !== -1) completed++;
+                if (row.status && row.status.indexOf('Rejected') !== -1) rejected++;
             });
-            
             $('#pendingCount').text(pending);
             $('#approvedCount').text(approved);
             $('#completedCount').text(completed);
             $('#rejectedCount').text(rejected);
-            
-            $('.reject-btn').off('click').on('click', function() {
-                var id = $(this).data('id');
-                var employeeName = $(this).data('employee');
-                var equipmentName = $(this).data('equipment');
-                showRejectModal(id, employeeName, equipmentName);
+
+            $('.reject-btn').off('click').on('click', function () {
+                showRejectModal($(this).data('id'), $(this).data('employee'), $(this).data('equipment'));
             });
-            
-            $('.view-message-btn').off('click').on('click', function() {
-                var message = $(this).data('message');
-                showMessageModal(message);
-            });
+            $('.view-message-btn').off('click').on('click', function () { showMessageModal($(this).data('message')); });
         }
     });
-    
+
     function showRejectModal(id, employeeName, equipmentName) {
-        var $template = $('#rejectModalTemplate').children().clone();
-        $template.find('.employee-name').text(employeeName);
-        $template.find('.equipment-name').text(equipmentName);
-        $template.find('form').attr('action', '/admin/requests/return/' + id + '/reject');
-        $template.modal('show');
+        var $m = $('#rejectModalTemplate').children().clone();
+        $m.find('.employee-name').text(employeeName);
+        $m.find('.equipment-name').text(equipmentName);
+        $m.find('form').attr('action', '/admin/requests/return/' + id + '/reject');
+        $m.modal('show');
     }
-    
     function showMessageModal(message) {
-        var $template = $('#messageModalTemplate').children().clone();
-        $template.find('.message-content').text(message);
-        $template.modal('show');
+        var $m = $('#messageModalTemplate').children().clone();
+        $m.find('.message-content').text(message);
+        $m.modal('show');
     }
 });
 </script>

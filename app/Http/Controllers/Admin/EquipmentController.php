@@ -29,32 +29,40 @@ class EquipmentController extends Controller
                 return $row->assignedUser->name ?? 'Not Assigned';
             })
             ->addColumn('action', function($row){
+                $view = '<a href="'.route('admin.equipment.show', $row->id).'" class="action-btn view" title="View" aria-label="View"><i class="bi bi-eye"></i></a>';
+
                 if ($row->status == 'Archived'){
-                    return '<form action="'.route('admin.equipment.restore', $row->id).'" method="POST" style="display:inline">
-                                '.csrf_field().'
-                                <button type="submit" class="btn btn-sm btn-success">Restore</button>
-                            </form>';
+                    return '<div class="action-group">'.$view.'
+                                <form action="'.route('admin.equipment.restore', $row->id).'" method="POST">
+                                    '.csrf_field().'
+                                    <button type="submit" class="action-btn restore" title="Restore" aria-label="Restore"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                </form>
+                            </div>';
                 }
-                return '
-                    <a href="'.route('admin.equipment.show', $row->id).'" class="btn btn-sm btn-info">View</a>
-                    <a href="'.route('admin.equipment.edit', $row->id).'" class="btn btn-sm btn-warning">Edit</a>
-                    <form action="'.route('admin.equipment.destroy', $row->id).'" method="POST" style="display:inline">
-                        '.csrf_field().'
-                        '.method_field('DELETE').'
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm(\'Archive this equipment?\')">Archive</button>
-                    </form>
-                ';
+
+                return '<div class="action-group">'.$view.'
+                            <a href="'.route('admin.equipment.edit', $row->id).'" class="action-btn edit" title="Edit" aria-label="Edit"><i class="bi bi-pencil"></i></a>
+                            <form action="'.route('admin.equipment.destroy', $row->id).'" method="POST" onsubmit="return confirm(\'Archive this equipment?\');">
+                                '.csrf_field().'
+                                '.method_field('DELETE').'
+                                <button type="submit" class="action-btn archive" title="Archive" aria-label="Archive"><i class="bi bi-archive"></i></button>
+                            </form>
+                        </div>';
             })
             ->editColumn('status', function($row){
-                if ($row->status == 'Available') return '<span class="badge bg-success">Available</span>';
-                if ($row->status == 'Assigned') return '<span class="badge bg-warning">Assigned</span>';
-                if ($row->status == 'In-Repair') return '<span class="badge bg-danger">In Repair</span>';
-                return '<span class="badge bg-secondary">'.$row->status.'</span>';
+                $map = [
+                    'Available' => ['tint-success', 'Available'],
+                    'Assigned'  => ['tint-warning', 'Assigned'],
+                    'In-Repair' => ['tint-danger',  'In Repair'],
+                    'Archived'  => ['tint-slate',   'Archived'],
+                ];
+                [$cls, $label] = $map[$row->status] ?? ['tint-slate', $row->status];
+                return '<span class="badge-pill '.$cls.'">'.$label.'</span>';
             })
             ->editColumn('condition', function($row){
-                $colors = ['New' => 'primary', 'Good' => 'success', 'Fair' => 'warning', 'Poor' => 'danger'];
-                $color = $colors[$row->condition] ?? 'secondary';
-                return '<span class="badge bg-'.$color.'">'.$row->condition.'</span>';
+                $map = ['New' => 'tint-info', 'Good' => 'tint-success', 'Fair' => 'tint-warning', 'Poor' => 'tint-danger'];
+                $cls = $map[$row->condition] ?? 'tint-slate';
+                return '<span class="badge-pill '.$cls.'">'.$row->condition.'</span>';
             })
             ->rawColumns(['action', 'status', 'condition'])
             ->make(true);
