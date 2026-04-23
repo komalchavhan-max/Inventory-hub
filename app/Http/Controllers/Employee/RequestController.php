@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Notification;
 use App\Models\User;
 use App\Helpers\NotificationHelper;
+use Illuminate\Support\Facades\Gate;
 
 class RequestController extends Controller
 {
@@ -36,13 +37,19 @@ class RequestController extends Controller
             'status' => 'Pending'
         ]);
         
-        $equipment = Equipment::find($validated['equipment_id']);
-        NotificationHelper::notifyAdmins(
-            'equipment_request',
-            $equipmentRequest->id,
-            'New equipment request from ' . Auth::user()->name . ' for ' . ($equipment->name ?? 'equipment'),
-            'Pending'
-        );
+        $equipment = Equipment::find($validated['equipment_id']);      // Get equipment name
+        
+        $admins = User::where('role', 'admin')->get();   // Notify ALL admins about new request
+        foreach ($admins as $admin) {
+            Notification::create([
+                'user_id' => $admin->id,
+                'type' => 'equipment_request',
+                'request_id' => $equipmentRequest->id,
+                'message' => 'New equipment request from ' . Auth::user()->name . ' for ' . ($equipment->name ?? 'equipment'),
+                'status' => 'Pending',
+                'is_read' => false
+            ]);
+        }
         
         return redirect()->route('employee.dashboard')
             ->with('success', 'Equipment request submitted successfully!');
@@ -54,9 +61,29 @@ class RequestController extends Controller
         return view('employee.requests.exchange-request', compact('myEquipment', 'availableEquipment'));
     }
 
-    public function storeExchangeRequest(ExchangeRequestStoreRequest $request){
+    public function storeExchangeRequest(ExchangeRequestStoreRequest $request)
+    {
         $validated = $request->validated();
+        $oldEquipment = Equipment::find($validated['old_equipment_id']);
         
+        if (!$oldEquipment) {
+            return redirect()->back()->with('error', 'Equipment not found.');
+        }
+        
+        if ($oldEquipment->assigned_to !== Auth::id()) {
+            return redirect()->back()->with('error', 'You can only exchange equipment that is assigned to you.');
+        }
+
+        $requestedEquipment = Equipment::find($validated['requested_equipment_id']);
+        
+        if (!$requestedEquipment) {
+            return redirect()->back()->with('error', 'Requested equipment not found.');
+        }
+        
+        if ($requestedEquipment->status !== 'Available') {
+            return redirect()->back()->with('error', 'Requested equipment is not available.');
+        }
+
         $exchangeRequest = ExchangeRequest::create([
             'user_id' => Auth::id(),
             'old_equipment_id' => $validated['old_equipment_id'],
@@ -68,17 +95,23 @@ class RequestController extends Controller
             'request_date' => now(),
             'status' => 'Pending'
         ]);
-        
-        NotificationHelper::notifyAdmins(
-            'exchange_request',
-            $exchangeRequest->id,
-            'New exchange request from ' . Auth::user()->name,
-            'Pending'
-        );
+
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            Notification::create([
+                'user_id' => $admin->id,
+                'type' => 'exchange_request',
+                'request_id' => $exchangeRequest->id,
+                'message' => 'New exchange request from ' . Auth::user()->name,
+                'status' => 'Pending',
+                'is_read' => false
+            ]);
+        }
         
         return redirect()->route('employee.dashboard')
             ->with('success', 'Exchange request submitted successfully!');
     }
+
     
     public function repairRequestForm(){     // Show Repair Request Form
         $myEquipment = Equipment::where('assigned_to', Auth::id())->get();
@@ -87,6 +120,16 @@ class RequestController extends Controller
 
     public function storeRepairRequest(RepairRequestStoreRequest $request){
         $validated = $request->validated();
+
+        $equipment = Equipment::find($validated['equipment_id']);
+        
+        if (!$equipment) {
+            return redirect()->back()->with('error', 'Equipment not found.');
+        }
+        
+        if ($equipment->assigned_to !== Auth::id()) {
+            return redirect()->back()->with('error', 'You can only report repair for equipment assigned to you.');
+        }
         
         $repairRequest = RepairRequest::create([
             'user_id' => Auth::id(),
@@ -98,17 +141,21 @@ class RequestController extends Controller
             'request_date' => now(),
             'status' => 'Pending'
         ]);
-        
-        $equipment = Equipment::find($validated['equipment_id']);
-        NotificationHelper::notifyAdmins(
-            'repair_request',
-            $repairRequest->id,
-            'New repair request from ' . Auth::user()->name . ' for ' . ($equipment->name ?? 'equipment'),
-            'Pending'
-        );
+
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            Notification::create([
+                'user_id' => $admin->id,
+                'type' => 'repair_request',
+                'request_id' => $repairRequest->id,
+                'message' => 'New repair request from ' . Auth::user()->name,
+                'status' => 'Pending',
+                'is_read' => false
+            ]);
+        }
         
         return redirect()->route('employee.dashboard')
-            ->with('success', 'Repair request submitted. Admin will review it.');
+            ->with('success', 'Repair request submitted successfully!');
     }
 
     public function returnRequestForm(){    // Show Return Request Form
@@ -118,6 +165,15 @@ class RequestController extends Controller
 
     public function storeReturnRequest(ReturnRequestStoreRequest $request){
         $validated = $request->validated();
+        $equipment = Equipment::find($validated['equipment_id']);
+        
+        if (!$equipment) {
+            return redirect()->back()->with('error', 'Equipment not found.');
+        }
+        
+        if ($equipment->assigned_to !== Auth::id()) {
+            return redirect()->back()->with('error', 'You can only return equipment that is assigned to you.');
+        }
         
         $returnRequest = ReturnRequest::create([
             'user_id' => Auth::id(),
@@ -128,17 +184,21 @@ class RequestController extends Controller
             'return_date' => now(),
             'status' => 'Pending'
         ]);
-        
-        $equipment = Equipment::find($validated['equipment_id']);
-        NotificationHelper::notifyAdmins(
-            'return_request',
-            $returnRequest->id,
-            'New return request from ' . Auth::user()->name . ' for ' . ($equipment->name ?? 'equipment'),
-            'Pending'
-        );
+
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            Notification::create([
+                'user_id' => $admin->id,
+                'type' => 'return_request',
+                'request_id' => $returnRequest->id,
+                'message' => 'New return request from ' . Auth::user()->name,
+                'status' => 'Pending',
+                'is_read' => false
+            ]);
+        }
         
         return redirect()->route('employee.dashboard')
-            ->with('success', 'Return request submitted. Please wait for admin approval.');
+            ->with('success', 'Return request submitted successfully!');
     }
 
     public function myRequests(){    // Show All My Requests

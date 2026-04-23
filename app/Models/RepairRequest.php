@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class RepairRequest extends Model
 {
@@ -45,32 +46,41 @@ class RepairRequest extends Model
         return $this->status === 'Pending';
     }
 
-    public function approve(): void {
-        $this->status = 'Approved';
-        $this->save();
-        
-        $equipment = $this->equipment;  
-        $equipment->status = 'In-Repair';
-        $equipment->assigned_to = null;
-        $equipment->save();
+    public function approve(): void{
+        DB::transaction(function (){
+            $this->status = 'Approved';
+            $this->save();
+            $equipment = Equipment::where('id', $this->equipment_id)->lockForUpdate()->first();
+            
+            if ($equipment) {
+                $equipment->status = 'In-Repair';
+                $equipment->assigned_to = null;
+                $equipment->save();
+            }
+        });
     }
 
-    public function complete(): void {
-        $this->status = 'Completed';
-        $this->completion_date = now();
-        $this->save();
-        
-        $equipment = $this->equipment; 
-        $equipment->status = 'Available';
-        $equipment->save();
-        
-        MaintenanceLog::create([  
-            'equipment_id' => $this->equipment_id,
-            'issue_description' => $this->issue_description,
-            'cost' => 0,
-            'technician_name' => 'Pending',
-            'repair_date' => now()
-        ]);
+    public function complete(): void{
+        DB::transaction(function () {
+            $this->status = 'Completed';
+            $this->completion_date = now();
+            $this->save();
+            
+            $equipment = Equipment::where('id', $this->equipment_id)->lockForUpdate()->first();
+            
+            if ($equipment) {
+                $equipment->status = 'Available';
+                $equipment->save();
+            }
+            
+            MaintenanceLog::create([
+                'equipment_id' => $this->equipment_id,
+                'issue_description' => $this->issue_description,
+                'cost' => 0,
+                'technician_name' => 'Pending',
+                'repair_date' => now()
+            ]);
+        });
     }
     
     public function reject(string $reason = null): void{

@@ -19,6 +19,7 @@ use App\Http\Requests\API\ExchangeRequestRejectRequest;
 use App\Http\Requests\API\RepairRequestRejectRequest;
 use App\Http\Requests\API\ReturnRequestRejectRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class RequestController extends Controller
 {
@@ -144,26 +145,46 @@ class RequestController extends Controller
         ]);
     }
 
-    public function approveEquipmentRequest($id){   //Admin Approve Equipment Request
-
-        $request = EquipmentRequest::findOrFail($id);
-        $request->status = 'Approved';
-        $request->approved_date = now();
-        $request->save();
-
-        $equipment = Equipment::find($request->equipment_id);
-        if ($equipment && $equipment->status == 'Available') {
-            $equipment->assigned_to = $request->user_id;
-            $equipment->status = 'Assigned';
-            $equipment->save();
-            $request->status = 'Fulfilled';
+    public function approveEquipmentRequest($id){
+        DB::beginTransaction();
+        
+        try {
+            $request = EquipmentRequest::where('id', $id)->lockForUpdate()->first();
+            
+            if (!$request) {
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Request not found'], 404);
+            }
+            
+            if ($request->status !== 'Pending') {
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Request already processed'], 400);
+            }
+            
+            $request->status = 'Approved';
+            $request->approved_date = now();
             $request->save();
-        }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Equipment request approved successfully'
-        ]);
+            $equipment = Equipment::where('id', $request->equipment_id)->lockForUpdate()->first();
+            if ($equipment && $equipment->status == 'Available') {
+                $equipment->assigned_to = $request->user_id;
+                $equipment->status = 'Assigned';
+                $equipment->save();
+                $request->status = 'Fulfilled';
+                $request->save();
+            }
+            
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Equipment request approved successfully'
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function rejectEquipmentRequest(RejectRequest $request, $id){     //Admin Reject Equipment Request
@@ -190,30 +211,49 @@ class RequestController extends Controller
         ]);
     }
 
-    public function processExchangeRequest($id){        //Admin Process Exchange Request
-        $exchangeRequest = ExchangeRequest::findOrFail($id);
+    public function processExchangeRequest($id){
+        DB::beginTransaction();
+        
+        try {
+            $exchangeRequest = ExchangeRequest::where('id', $id)->lockForUpdate()->first();
+            
+            if (!$exchangeRequest) {
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Exchange request not found'], 404);
+            }
+            
+            if ($exchangeRequest->status !== 'Approved') {
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Request must be approved first'], 400);
+            }
+            
+            $oldEquipment = Equipment::where('id', $exchangeRequest->old_equipment_id)->lockForUpdate()->first();
+            $newEquipment = Equipment::where('id', $exchangeRequest->requested_equipment_id)->lockForUpdate()->first();
+            
+            if ($newEquipment && $newEquipment->status == 'Available') {
+                $oldEquipment->assigned_to = null;
+                $oldEquipment->status = 'Available';
+                $oldEquipment->save();
+                
+                $newEquipment->assigned_to = $exchangeRequest->user_id;
+                $newEquipment->status = 'Assigned';
+                $newEquipment->save();
+            }
+            
+            $exchangeRequest->status = 'Completed';
+            $exchangeRequest->save();
+            
+            DB::commit();
 
-        $oldEquipment = Equipment::find($exchangeRequest->old_equipment_id);    // Return old equipment
-        if ($oldEquipment) {
-            $oldEquipment->assigned_to = null;
-            $oldEquipment->status = 'Available';
-            $oldEquipment->save();
+            return response()->json([
+                'success' => true,
+                'message' => 'Exchange processed successfully'
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-
-        $newEquipment = Equipment::find($exchangeRequest->requested_equipment_id);   // Assign new equipment
-        if ($newEquipment && $newEquipment->status == 'Available') {
-            $newEquipment->assigned_to = $exchangeRequest->user_id;
-            $newEquipment->status = 'Assigned';
-            $newEquipment->save();
-        }
-
-        $exchangeRequest->status = 'Completed';
-        $exchangeRequest->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Exchange processed successfully'
-        ]);
     }
 
     public function rejectExchangeRequest(ExchangeRequestRejectRequest $request, $id){    // Reject Exchange Request
@@ -228,49 +268,82 @@ class RequestController extends Controller
         ]);
     }
 
-    public function approveRepairRequest($id){   // Approve Repair Request
-        $repairRequest = RepairRequest::findOrFail($id);
-        $repairRequest->status = 'Approved';
-        $repairRequest->save();
+    public function approveRepairRequest($id){
+        DB::beginTransaction();
+        
+        try {
+            $repairRequest = RepairRequest::where('id', $id)->lockForUpdate()->first();
+            
+            if (!$repairRequest) {
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Repair request not found'], 404);
+            }
+            
+            $repairRequest->status = 'Approved';
+            $repairRequest->save();
 
-        $equipment = Equipment::find($repairRequest->equipment_id);
-        if ($equipment) {
-            $equipment->status = 'In-Repair';
-            $equipment->assigned_to = null;
-            $equipment->save();
+            $equipment = Equipment::where('id', $repairRequest->equipment_id)->lockForUpdate()->first();
+            if ($equipment) {
+                $equipment->status = 'In-Repair';
+                $equipment->assigned_to = null;
+                $equipment->save();
+            }
+            
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Repair request approved'
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Repair request approved'
-        ]);
     }
 
-    public function completeRepairRequest($id){         // Complete Repair Request
-        $repairRequest = RepairRequest::findOrFail($id);
-        $repairRequest->status = 'Completed';
-        $repairRequest->completion_date = now();
-        $repairRequest->save();
+    public function completeRepairRequest($id){
+        DB::beginTransaction();
+        
+        try {
+            $repairRequest = RepairRequest::where('id', $id)->lockForUpdate()->first();
+            
+            if (!$repairRequest) {
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Repair request not found'], 404);
+            }
+            
+            $repairRequest->status = 'Completed';
+            $repairRequest->completion_date = now();
+            $repairRequest->save();
 
-        MaintenanceLog::create([          // Create maintenance log
-            'equipment_id' => $repairRequest->equipment_id,
-            'issue_description' => $repairRequest->issue_description,
-            'cost' => 0,
-            'technician_name' => 'Pending',
-            'repair_date' => now()
-        ]);
+            MaintenanceLog::create([
+                'equipment_id' => $repairRequest->equipment_id,
+                'issue_description' => $repairRequest->issue_description,
+                'cost' => 0,
+                'technician_name' => 'Pending',
+                'repair_date' => now()
+            ]);
 
-        $equipment = Equipment::find($repairRequest->equipment_id);
-        if ($equipment) {
-            $equipment->status = 'Available';
-            $equipment->save();
+            $equipment = Equipment::where('id', $repairRequest->equipment_id)->lockForUpdate()->first();
+            if ($equipment) {
+                $equipment->status = 'Available';
+                $equipment->save();
+            }
+            
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Repair completed successfully'
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Repair completed successfully'
-        ]);
     }
+
 
     public function rejectRepairRequest(RepairRequestRejectRequest $request, $id){    // Reject Repair Request
         $repairRequest = RepairRequest::findOrFail($id);
@@ -295,23 +368,39 @@ class RequestController extends Controller
         ]);
     }
 
-    public function completeReturnRequest($id){      // Complete Return Request
-        $returnRequest = ReturnRequest::findOrFail($id);
-        $returnRequest->status = 'Completed';
-        $returnRequest->admin_verified = true;
-        $returnRequest->save();
+    public function completeReturnRequest($id){
+        DB::beginTransaction();
+        
+        try {
+            $returnRequest = ReturnRequest::where('id', $id)->lockForUpdate()->first();
+            
+            if (!$returnRequest) {
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Return request not found'], 404);
+            }
+            
+            $returnRequest->status = 'Completed';
+            $returnRequest->admin_verified = true;
+            $returnRequest->save();
 
-        $equipment = Equipment::find($returnRequest->equipment_id);
-        if ($equipment) {
-            $equipment->assigned_to = null;
-            $equipment->status = 'Available';
-            $equipment->save();
+            $equipment = Equipment::where('id', $returnRequest->equipment_id)->lockForUpdate()->first();
+            if ($equipment) {
+                $equipment->assigned_to = null;
+                $equipment->status = 'Available';
+                $equipment->save();
+            }
+            
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Return completed successfully'
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Return completed successfully'
-        ]);
     }
 
     public function rejectReturnRequest(ReturnRequestRejectRequest $request, $id){      // Reject Return Request

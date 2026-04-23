@@ -14,7 +14,7 @@ class EquipmentRequestStoreRequest extends FormRequest
         return [
             'equipment_id' => 'required|exists:equipment,id',
             'priority' => 'required|in:Urgent,Normal,Low',
-            'request_reason' => 'required|min:10'
+            'request_reason' => 'required|min:10|max:1000',
         ];
     }
 
@@ -26,6 +26,7 @@ class EquipmentRequestStoreRequest extends FormRequest
             'priority.in' => 'Invalid priority selected',
             'request_reason.required' => 'Please provide a reason',
             'request_reason.min' => 'Reason must be at least 10 characters',
+            'request_reason.max' => 'Reason cannot exceed 1000 characters',
         ];
     }
 }

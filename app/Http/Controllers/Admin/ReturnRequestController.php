@@ -8,6 +8,7 @@ use App\Models\Equipment;
 use App\Models\Notification;
 use App\Services\DataTableService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReturnRequestController extends Controller
 {
@@ -60,27 +61,48 @@ class ReturnRequestController extends Controller
     }
     
     public function complete($id){
-        $returnRequest = ReturnRequest::findOrFail($id);
-        $returnRequest->status = 'Completed';
-        $returnRequest->admin_verified = true;
-        $returnRequest->save();
+        DB::beginTransaction();
         
-        $equipment = Equipment::find($returnRequest->equipment_id);
-        if ($equipment) {
-            $equipment->assigned_to = null;
-            $equipment->status = 'Available';
-            $equipment->save();
+        try {
+            $returnRequest = ReturnRequest::where('id', $id)->lockForUpdate()->first();
+            
+            if (!$returnRequest) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Return request not found.');
+            }
+            
+            if ($returnRequest->status !== 'Approved') {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Request must be approved before completing.');
+            }
+            
+            $returnRequest->status = 'Completed';
+            $returnRequest->admin_verified = true;
+            $returnRequest->save();
+            
+            $equipment = Equipment::where('id', $returnRequest->equipment_id)->lockForUpdate()->first();
+            if ($equipment) {
+                $equipment->assigned_to = null;
+                $equipment->status = 'Available';
+                $equipment->save();
+            }
+            
+            DB::commit();
+            
+            Notification::create([
+                'user_id' => $returnRequest->user_id,
+                'type' => 'return_request',
+                'request_id' => $returnRequest->id,
+                'message' => 'Your equipment return has been completed. Thank you.',
+                'status' => 'Completed',
+                'is_read' => false
+            ]);
+            
+            return redirect()->back()->with('success', 'Return completed successfully');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
         }
-        
-        Notification::create([
-            'user_id' => $returnRequest->user_id,
-            'type' => 'return_request',
-            'request_id' => $returnRequest->id,
-            'message' => 'Your equipment return has been completed. Thank you.',
-            'status' => 'Completed',
-            'is_read' => false
-        ]);
-        
-        return redirect()->back()->with('success', 'Return completed successfully');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class ExchangeRequest extends Model
 {
@@ -50,27 +51,43 @@ class ExchangeRequest extends Model
     }
 
     public function approve(): void{
-        $this->status = 'Approved';
-        $this->admin_approval_date = now();
-        $this->save();
-        $this->processExchange(); 
+        DB::transaction(function () {
+            $this->status = 'Approved';
+            $this->admin_approval_date = now();
+            $this->save();
+            $this->processExchange();
+        });
     }
 
-    public function processExchange(): void  { 
-        $oldEquipment = $this->oldEquipment;  
-        $oldEquipment->assigned_to = null;
-        $oldEquipment->status = 'Available';
-        $oldEquipment->save();
-        $newEquipment = $this->requestedEquipment; 
-        $newEquipment->assigned_to = $this->user_id;
-        $newEquipment->status = 'Assigned';
-        $newEquipment->save();
-        $this->status = 'Completed'; 
-        $this->save();
+    public function processExchange(): void{
+        DB::transaction(function () {
+            $oldEquipment = Equipment::where('id', $this->old_equipment_id)->lockForUpdate()->first();
+            $newEquipment = Equipment::where('id', $this->requested_equipment_id)->lockForUpdate()->first();
+            
+            if (!$oldEquipment || !$newEquipment) {
+                throw new \Exception('Equipment not found');
+            }
+            
+            if ($newEquipment->status !== 'Available') {
+                throw new \Exception('Requested equipment is not available');
+            }
+            
+            $oldEquipment->assigned_to = null;
+            $oldEquipment->status = 'Available';
+            $oldEquipment->save();
+            
+            $newEquipment->assigned_to = $this->user_id;
+            $newEquipment->status = 'Assigned';
+            $newEquipment->save();
+            
+            $this->status = 'Completed';
+            $this->save();
+        });
     }
 
     public function reject(string $reason = null): void  {
         $this->status = 'Rejected';
+        $this->admin_message = $reason;
         $this->save();
     }
 

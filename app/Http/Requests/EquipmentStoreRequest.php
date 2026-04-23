@@ -13,10 +13,10 @@ class EquipmentStoreRequest extends FormRequest
     public function rules(){
         return [
             'name' => 'required|min:3|max:255',
-            'serial_number' => 'required|unique:equipment,serial_number',
+            'serial_number' => 'required|unique:equipment,serial_number|max:100',
             'category_id' => 'required|exists:categories,id',
-            'description' => 'nullable|string',
-            'specifications' => 'nullable|string',
+            'description' => 'nullable|string|max:2000',
+            'specifications' => 'nullable|string|max:5000',
             'purchase_date' => 'nullable|date',
             'warranty_until' => 'nullable|date',
             'condition' => 'nullable|in:New,Good,Fair,Poor',

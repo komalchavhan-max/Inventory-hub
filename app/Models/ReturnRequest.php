@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class ReturnRequest extends Model
 {
@@ -45,15 +46,19 @@ class ReturnRequest extends Model
     }
 
     public function complete(): void{
-        $this->status = 'Completed';
-        $this->admin_verified = true;
-        $this->save();
-        
-
-        $equipment = $this->equipment;
-        $equipment->assigned_to = null;
-        $equipment->status = 'Available';
-        $equipment->save();
+        DB::transaction(function () {
+            $this->status = 'Completed';
+            $this->admin_verified = true;
+            $this->save();
+            
+            $equipment = Equipment::where('id', $this->equipment_id)->lockForUpdate()->first();
+            
+            if ($equipment) {
+                $equipment->assigned_to = null;
+                $equipment->status = 'Available';
+                $equipment->save();
+            }
+        });
     }
 
     public function reject(string $reason = null): void{

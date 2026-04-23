@@ -14,8 +14,8 @@ class ReturnRequestStoreRequest extends FormRequest
         return [
             'equipment_id' => 'required|exists:equipment,id',
             'return_reason' => 'required|in:Leaving Company,Exchange,Broken,Upgrade,Other',
-            'equipment_condition' => 'required|string',
-            'missing_parts' => 'nullable|string'
+            'equipment_condition' => 'required|string|max:500',
+            'missing_parts' => 'nullable|string|max:500',
         ];
     }
 

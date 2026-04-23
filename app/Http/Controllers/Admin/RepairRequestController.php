@@ -9,6 +9,7 @@ use App\Models\MaintenanceLog;
 use App\Models\Notification;
 use App\Services\DataTableService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RepairRequestController extends Controller
 {
@@ -22,27 +23,48 @@ class RepairRequestController extends Controller
     }
     
     public function approve($id){
-        $repairRequest = RepairRequest::findOrFail($id);
-        $repairRequest->status = 'Approved';
-        $repairRequest->save();
+        DB::beginTransaction();
         
-        $equipment = Equipment::find($repairRequest->equipment_id);
-        if ($equipment) {
-            $equipment->status = 'In-Repair';
-            $equipment->assigned_to = null;
-            $equipment->save();
+        try {
+            $repairRequest = RepairRequest::where('id', $id)->lockForUpdate()->first();
+            
+            if (!$repairRequest) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Repair request not found.');
+            }
+            
+            if ($repairRequest->status !== 'Pending') {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Request has already been processed.');
+            }
+            
+            $repairRequest->status = 'Approved';
+            $repairRequest->save();
+            
+            $equipment = Equipment::where('id', $repairRequest->equipment_id)->lockForUpdate()->first();
+            if ($equipment) {
+                $equipment->status = 'In-Repair';
+                $equipment->assigned_to = null;
+                $equipment->save();
+            }
+            
+            DB::commit();
+            
+            Notification::create([
+                'user_id' => $repairRequest->user_id,
+                'type' => 'repair_request',
+                'request_id' => $repairRequest->id,
+                'message' => 'Your repair request for ' . ($equipment->name ?? 'equipment') . ' has been approved.',
+                'status' => 'Approved',
+                'is_read' => false
+            ]);
+            
+            return redirect()->back()->with('success', 'Repair request approved!');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
         }
-        
-        Notification::create([
-            'user_id' => $repairRequest->user_id,
-            'type' => 'repair_request',
-            'request_id' => $repairRequest->id,
-            'message' => 'Your repair request for ' . ($equipment->name ?? 'equipment') . ' has been approved.',
-            'status' => 'Approved',
-            'is_read' => false
-        ]);
-        
-        return redirect()->back()->with('success', 'Repair request approved!');
     }
     
     public function reject(Request $request, $id){
@@ -68,34 +90,55 @@ class RepairRequestController extends Controller
     }
     
     public function complete($id){
-        $repairRequest = RepairRequest::findOrFail($id);
-        $repairRequest->status = 'Completed';
-        $repairRequest->completion_date = now();
-        $repairRequest->save();
+        DB::beginTransaction();
         
-        MaintenanceLog::create([
-            'equipment_id' => $repairRequest->equipment_id,
-            'issue_description' => $repairRequest->issue_description,
-            'cost' => 0,
-            'technician_name' => 'Pending',
-            'repair_date' => now()
-        ]);
-        
-        $equipment = Equipment::find($repairRequest->equipment_id);
-        if ($equipment) {
-            $equipment->status = 'Available';
-            $equipment->save();
+        try {
+            $repairRequest = RepairRequest::where('id', $id)->lockForUpdate()->first();
+            
+            if (!$repairRequest) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Repair request not found.');
+            }
+            
+            if ($repairRequest->status !== 'Approved') {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Request must be approved before completing.');
+            }
+            
+            $repairRequest->status = 'Completed';
+            $repairRequest->completion_date = now();
+            $repairRequest->save();
+            
+            MaintenanceLog::create([
+                'equipment_id' => $repairRequest->equipment_id,
+                'issue_description' => $repairRequest->issue_description,
+                'cost' => 0,
+                'technician_name' => 'Pending',
+                'repair_date' => now()
+            ]);
+            
+            $equipment = Equipment::where('id', $repairRequest->equipment_id)->lockForUpdate()->first();
+            if ($equipment) {
+                $equipment->status = 'Available';
+                $equipment->save();
+            }
+            
+            DB::commit();
+            
+            Notification::create([
+                'user_id' => $repairRequest->user_id,
+                'type' => 'repair_request',
+                'request_id' => $repairRequest->id,
+                'message' => 'Your equipment repair is complete. You can now request the equipment again.',
+                'status' => 'Completed',
+                'is_read' => false
+            ]);
+            
+            return redirect()->back()->with('success', 'Repair completed!');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
         }
-        
-        Notification::create([
-            'user_id' => $repairRequest->user_id,
-            'type' => 'repair_request',
-            'request_id' => $repairRequest->id,
-            'message' => 'Your equipment repair is complete. You can now request the equipment again.',
-            'status' => 'Completed',
-            'is_read' => false
-        ]);
-        
-        return redirect()->back()->with('success', 'Repair completed!');
     }
 }

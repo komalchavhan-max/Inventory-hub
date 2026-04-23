@@ -13,8 +13,8 @@ class CategoryStoreRequest extends FormRequest
     public function rules(){
         return [
             'name' => 'required|unique:categories|min:2|max:50',
-            'description' => 'nullable|string',
-            'icon' => 'nullable|string',
+            'description' => 'nullable|string|max:500',
+            'icon' => 'nullable|string|max:50',
         ];
     }
 
