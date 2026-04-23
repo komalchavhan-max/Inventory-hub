@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Str;
+use App\Models\Equipment;
 
 class DataTableService
 {
@@ -40,32 +41,27 @@ class DataTableService
         'Low'      => 'tint-success',
     ];
 
-    private static function pill(string $label, string $tint): string
-    {
+    private static function pill(string $label, string $tint): string{
         return '<span class="badge-pill '.$tint.'">'.$label.'</span>';
     }
 
-    private static function statusPill(string $status): string
-    {
+    private static function statusPill(string $status): string{
         $label = $status === 'In-Repair' ? 'In Repair' : $status;
         return self::pill($label, self::STATUS_MAP[$status] ?? 'tint-slate');
     }
 
-    private static function emptyCell(): string
-    {
+    private static function emptyCell(): string{
         return '<span class="text-muted">—</span>';
     }
 
-    private static function messageButton($message): string
-    {
+    private static function messageButton($message): string{
         if (!$message) {
             return self::emptyCell();
         }
         return '<button type="button" class="action-btn message view-message-btn" title="View message" aria-label="View message" data-message="'.e($message).'"><i class="bi bi-chat-dots"></i></button>';
     }
 
-    private static function rejectButton($row, string $equipmentField = 'equipment'): string
-    {
+    private static function rejectButton($row, string $equipmentField = 'equipment'): string{
         $equipmentName = $row->{$equipmentField}->name ?? 'N/A';
         return '<button type="button" class="action-btn reject reject-btn" title="Reject" aria-label="Reject"
                 data-id="'.$row->id.'"
@@ -73,24 +69,21 @@ class DataTableService
                 data-equipment="'.e($equipmentName).'"><i class="bi bi-x-lg"></i></button>';
     }
 
-    private static function approveButton(string $routeName, $id): string
-    {
+    private static function approveButton(string $routeName, $id): string{
         return '<form action="'.route($routeName, $id).'" method="POST" class="d-inline-flex">
                     '.csrf_field().'
                     <button type="submit" class="action-btn approve" title="Approve" aria-label="Approve"><i class="bi bi-check-lg"></i></button>
                 </form>';
     }
 
-    private static function singleActionForm(string $routeName, $id, string $class, string $icon, string $label): string
-    {
+    private static function singleActionForm(string $routeName, $id, string $class, string $icon, string $label): string{
         return '<form action="'.route($routeName, $id).'" method="POST" class="d-inline-flex">
                     '.csrf_field().'
                     <button type="submit" class="action-btn '.$class.'" title="'.$label.'" aria-label="'.$label.'"><i class="bi '.$icon.'"></i></button>
                 </form>';
     }
 
-    private static function deleteForm(string $routeName, $id, string $confirm, string $actionClass = 'archive', string $icon = 'bi-archive', string $label = 'Archive'): string
-    {
+    private static function deleteForm(string $routeName, $id, string $confirm, string $actionClass = 'archive', string $icon = 'bi-archive', string $label = 'Archive'): string{
         return '<form action="'.route($routeName, $id).'" method="POST" class="d-inline-flex" onsubmit="return confirm(\''.$confirm.'\');">
                     '.csrf_field().'
                     '.method_field('DELETE').'
@@ -98,8 +91,7 @@ class DataTableService
                 </form>';
     }
 
-    public static function equipmentData($query)
-    {
+    public static function equipmentData($query){
         return DataTables::of($query)
             ->filter(function ($q) {
                 if ($search = request()->get('search')['value'] ?? null) {
@@ -131,28 +123,40 @@ class DataTableService
             ->make(true);
     }
 
-    public static function categoriesData($query)
-    {
+    public static function categoriesData($query){
         return DataTables::of($query)
+            ->filter(function ($q) {
+                if ($search = request()->get('search')['value'] ?? null) {
+                    $q->where(function ($inner) use ($search) {
+                        $inner->where('name', 'like', "%{$search}%")
+                            ->orWhere('slug', 'like', "%{$search}%")
+                            ->orWhere('description', 'like', "%{$search}%");
+                    });
+                }
+            })
             ->addColumn('icon_display', function ($row) {
                 return $row->icon ? '<i class="'.$row->icon.' me-1"></i>'.$row->name : $row->name;
             })
             ->addColumn('equipment_count', function ($row) {
-                return '<span class="badge-pill tint-primary">'.$row->equipment_count.'</span>';
+                $count = \App\Models\Equipment::where('category_id', $row->id)->count();
+                return '<span class="badge bg-primary">' . $count . '</span>';
             })
             ->addColumn('action', function ($row) {
+                $view = '<a href="'.route('admin.categories.show', $row->id).'" class="action-btn view" title="View" aria-label="View"><i class="bi bi-eye"></i></a>';
                 $edit = '<a href="'.route('admin.categories.edit', $row->id).'" class="action-btn edit" title="Edit" aria-label="Edit"><i class="bi bi-pencil"></i></a>';
-                return '<div class="action-group">'.$edit
-                    .self::deleteForm('admin.categories.destroy', $row->id, 'Delete this category?', 'delete', 'bi-trash', 'Delete')
-                    .'</div>';
+                $delete = '<form action="'.route('admin.categories.destroy', $row->id).'" method="POST" class="d-inline-flex" onsubmit="return confirm(\'Delete this category?\');">
+                                '.csrf_field().'
+                                '.method_field('DELETE').'
+                                <button type="submit" class="action-btn delete" title="Delete" aria-label="Delete"><i class="bi bi-trash"></i></button>
+                            </form>';
+                return '<div class="action-group">'.$view.$edit.$delete.'</div>';
             })
-            ->editColumn('description', fn($row) => Str::limit($row->description, 80))
+            ->editColumn('description', fn($row) => \Str::limit($row->description, 80))
             ->rawColumns(['icon_display', 'equipment_count', 'action'])
             ->make(true);
     }
 
-    public static function equipmentRequestsData($query)
-    {
+    public static function equipmentRequestsData($query){
         return DataTables::of($query)
             ->filter(function ($q) {
                 if ($search = request()->get('search')['value'] ?? null) {
@@ -185,8 +189,7 @@ class DataTableService
             ->make(true);
     }
 
-    public static function exchangeRequestsData($query)
-    {
+    public static function exchangeRequestsData($query){
         return DataTables::of($query)
             ->filter(function ($q) {
                 if ($search = request()->get('search')['value'] ?? null) {
@@ -231,8 +234,7 @@ class DataTableService
             ->make(true);
     }
 
-    public static function repairRequestsData($query)
-    {
+    public static function repairRequestsData($query){
         return DataTables::of($query)
             ->filter(function ($q) {
                 if ($search = request()->get('search')['value'] ?? null) {
@@ -272,8 +274,7 @@ class DataTableService
             ->make(true);
     }
 
-    public static function returnRequestsData($query)
-    {
+    public static function returnRequestsData($query){
         return DataTables::of($query)
             ->filter(function ($q) {
                 if ($search = request()->get('search')['value'] ?? null) {
@@ -312,8 +313,7 @@ class DataTableService
             ->make(true);
     }
 
-    public static function maintenanceLogsData($query)
-    {
+    public static function maintenanceLogsData($query){
         return DataTables::of($query)
             ->filter(function ($q) {
                 if ($search = request()->get('search')['value'] ?? null) {

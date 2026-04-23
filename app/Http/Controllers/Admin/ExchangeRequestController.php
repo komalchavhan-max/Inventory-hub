@@ -53,6 +53,15 @@ class ExchangeRequestController extends Controller
                 'is_read' => false
             ]);
             
+            Notification::create([
+                'user_id' => auth()->id(),
+                'type' => 'exchange_request',
+                'request_id' => $exchangeRequest->id,
+                'message' => 'You approved exchange request #' . $exchangeRequest->id,
+                'status' => 'Approved',
+                'is_read' => false
+            ]);
+            
             return redirect()->back()->with('success', 'Exchange request approved!');
             
         } catch (\Exception $e) {
@@ -61,26 +70,57 @@ class ExchangeRequestController extends Controller
         }
     }
     
-    public function reject(Request $request, $id){
+   public function reject(Request $request, $id){
         $request->validate([
             'rejection_message' => 'required|string|min:5'
         ]);
         
-        $exchangeRequest = ExchangeRequest::findOrFail($id);
-        $exchangeRequest->status = 'Rejected';
-        $exchangeRequest->admin_message = $request->rejection_message;
-        $exchangeRequest->save();
+        DB::beginTransaction();
         
-        Notification::create([
-            'user_id' => $exchangeRequest->user_id,
-            'type' => 'exchange_request',
-            'request_id' => $exchangeRequest->id,
-            'message' => 'Your exchange request has been rejected. Reason: ' . $request->rejection_message,
-            'status' => 'Rejected',
-            'is_read' => false
-        ]);
-        
-        return redirect()->back()->with('success', 'Exchange request rejected!');
+        try {
+            $exchangeRequest = ExchangeRequest::where('id', $id)->lockForUpdate()->first();
+            
+            if (!$exchangeRequest) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Exchange request not found.');
+            }
+            
+            if ($exchangeRequest->status !== 'Pending') {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Request has already been processed.');
+            }
+            
+            $exchangeRequest->status = 'Rejected';
+            $exchangeRequest->admin_message = $request->rejection_message;
+            $exchangeRequest->save();
+            
+            DB::commit();
+            
+            // Notify employee
+            Notification::create([
+                'user_id' => $exchangeRequest->user_id,
+                'type' => 'exchange_request',
+                'request_id' => $exchangeRequest->id,
+                'message' => 'Your exchange request has been rejected. Reason: ' . $request->rejection_message,
+                'status' => 'Rejected',
+                'is_read' => false
+            ]);
+            
+            Notification::create([
+                'user_id' => auth()->id(),
+                'type' => 'exchange_request',
+                'request_id' => $exchangeRequest->id,
+                'message' => 'You rejected exchange request #' . $exchangeRequest->id . '. Reason: ' . $request->rejection_message,
+                'status' => 'Rejected',
+                'is_read' => false
+            ]);
+            
+            return redirect()->back()->with('success', 'Exchange request rejected!');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
+        }
     }
     
     public function process($id){
@@ -130,6 +170,15 @@ class ExchangeRequestController extends Controller
                 'type' => 'exchange_request',
                 'request_id' => $exchangeRequest->id,
                 'message' => 'Your exchange request has been processed successfully.',
+                'status' => 'Completed',
+                'is_read' => false
+            ]);
+ 
+            Notification::create([
+                'user_id' => auth()->id(),
+                'type' => 'exchange_request',
+                'request_id' => $exchangeRequest->id,
+                'message' => 'You processed exchange request #' . $exchangeRequest->id,
                 'status' => 'Completed',
                 'is_read' => false
             ]);

@@ -34,6 +34,15 @@ class ReturnRequestController extends Controller
             'status' => 'Approved',
             'is_read' => false
         ]);
+
+        Notification::create([
+            'user_id' => auth()->id(),
+            'type' => 'return_request',
+            'request_id' => $returnRequest->id,
+            'message' => 'You approved return request #' . $returnRequest->id,
+            'status' => 'Approved',
+            'is_read' => false
+        ]);
         
         return redirect()->back()->with('success', 'Return request approved');
     }
@@ -53,6 +62,15 @@ class ReturnRequestController extends Controller
             'type' => 'return_request',
             'request_id' => $returnRequest->id,
             'message' => 'Your return request has been rejected. Reason: ' . $request->rejection_message,
+            'status' => 'Rejected',
+            'is_read' => false
+        ]);
+
+        Notification::create([
+            'user_id' => auth()->id(),
+            'type' => 'return_request',
+            'request_id' => $returnRequest->id,
+            'message' => 'You rejected return request #' . $returnRequest->id . '. Reason: ' . $request->rejection_message,
             'status' => 'Rejected',
             'is_read' => false
         ]);
@@ -94,6 +112,15 @@ class ReturnRequestController extends Controller
                 'type' => 'return_request',
                 'request_id' => $returnRequest->id,
                 'message' => 'Your equipment return has been completed. Thank you.',
+                'status' => 'Completed',
+                'is_read' => false
+            ]);
+
+            Notification::create([
+                'user_id' => auth()->id(),
+                'type' => 'return_request',
+                'request_id' => $returnRequest->id,
+                'message' => 'You completed return request #' . $returnRequest->id,
                 'status' => 'Completed',
                 'is_read' => false
             ]);

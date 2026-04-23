@@ -23,7 +23,7 @@ class CategoryController extends Controller
     
     public function create(){
         $categories = Category::all();
-        return view('admin.equipment.create', compact('categories'));
+        return view('admin.categories.create', compact('categories'));
     }
     
     public function store(CategoryStoreRequest $request){
@@ -66,5 +66,11 @@ class CategoryController extends Controller
         $categories = Category::withCount('equipment')->get();
         
         return view('admin.categories.equipment', compact('category', 'equipment', 'categories'));
+    }
+
+    public function show($id){
+        $category = Category::withCount('equipment')->findOrFail($id);
+        $equipment = Equipment::where('category_id', $category->id)->get();
+        return view('admin.categories.show', compact('category', 'equipment'));
     }
 }

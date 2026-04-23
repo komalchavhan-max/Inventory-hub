@@ -37,18 +37,23 @@ class RequestController extends Controller
             'status' => 'Pending'
         ]);
         
-        $equipment = Equipment::find($validated['equipment_id']);      // Get equipment name
+        $equipment = Equipment::find($validated['equipment_id']);
         
-        $admins = User::where('role', 'admin')->get();   // Notify ALL admins about new request
-        foreach ($admins as $admin) {
-            Notification::create([
-                'user_id' => $admin->id,
-                'type' => 'equipment_request',
-                'request_id' => $equipmentRequest->id,
-                'message' => 'New equipment request from ' . Auth::user()->name . ' for ' . ($equipment->name ?? 'equipment'),
-                'status' => 'Pending',
-                'is_read' => false
-            ]);
+        $adminRole = \App\Models\Role::where('name', 'admin')->first();
+        
+        if ($adminRole) {
+            $admins = User::where('role_id', $adminRole->id)->get();
+            
+            foreach ($admins as $admin) {
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'type' => 'equipment_request',
+                    'request_id' => $equipmentRequest->id,
+                    'message' => 'New equipment request from ' . Auth::user()->name . ' for ' . ($equipment->name ?? 'equipment'),
+                    'status' => 'Pending',
+                    'is_read' => false
+                ]);
+            }
         }
         
         return redirect()->route('employee.dashboard')
@@ -96,7 +101,9 @@ class RequestController extends Controller
             'status' => 'Pending'
         ]);
 
-        $admins = User::where('role', 'admin')->get();
+        $admins = User::whereHas('role', function($query) {
+            $query->where('name', 'admin');
+        })->get();
         foreach ($admins as $admin) {
             Notification::create([
                 'user_id' => $admin->id,
@@ -142,7 +149,9 @@ class RequestController extends Controller
             'status' => 'Pending'
         ]);
 
-        $admins = User::where('role', 'admin')->get();
+        $admins = User::whereHas('role', function($query) {
+            $query->where('name', 'admin');
+        })->get();
         foreach ($admins as $admin) {
             Notification::create([
                 'user_id' => $admin->id,
@@ -185,7 +194,9 @@ class RequestController extends Controller
             'status' => 'Pending'
         ]);
 
-        $admins = User::where('role', 'admin')->get();
+        $admins = User::whereHas('role', function($query) {
+            $query->where('name', 'admin');
+        })->get();
         foreach ($admins as $admin) {
             Notification::create([
                 'user_id' => $admin->id,

@@ -75,7 +75,7 @@ class EquipmentController extends Controller
     }
     
     public function store(EquipmentStoreRequest $request){
-        $validated = $request->validate();
+        $validated = $request->validated();
 
         if (!empty($validated['specifications'])) {
             $decoded = json_decode($validated['specifications']);

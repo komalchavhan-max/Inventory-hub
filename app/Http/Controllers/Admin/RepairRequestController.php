@@ -58,6 +58,15 @@ class RepairRequestController extends Controller
                 'status' => 'Approved',
                 'is_read' => false
             ]);
+
+            Notification::create([
+                'user_id' => auth()->id(),
+                'type' => 'repair_request',
+                'request_id' => $repairRequest->id,
+                'message' => 'You approved repair request #' . $repairRequest->id,
+                'status' => 'Approved',
+                'is_read' => false
+            ]);
             
             return redirect()->back()->with('success', 'Repair request approved!');
             
@@ -72,21 +81,51 @@ class RepairRequestController extends Controller
             'rejection_message' => 'required|string|min:5'
         ]);
         
-        $repairRequest = RepairRequest::findOrFail($id);
-        $repairRequest->status = 'Rejected';
-        $repairRequest->admin_message = $request->rejection_message;
-        $repairRequest->save();
+        DB::beginTransaction();
         
-        Notification::create([
-            'user_id' => $repairRequest->user_id,
-            'type' => 'repair_request',
-            'request_id' => $repairRequest->id,
-            'message' => 'Your repair request has been rejected. Reason: ' . $request->rejection_message,
-            'status' => 'Rejected',
-            'is_read' => false
-        ]);
-        
-        return redirect()->back()->with('success', 'Repair request rejected!');
+        try {
+            $repairRequest = RepairRequest::where('id', $id)->lockForUpdate()->first();
+            
+            if (!$repairRequest) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Repair request not found.');
+            }
+            
+            if ($repairRequest->status !== 'Pending') {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Request has already been processed.');
+            }
+            
+            $repairRequest->status = 'Rejected';
+            $repairRequest->admin_message = $request->rejection_message;
+            $repairRequest->save();
+            
+            DB::commit();
+            
+            Notification::create([
+                'user_id' => $repairRequest->user_id,
+                'type' => 'repair_request',
+                'request_id' => $repairRequest->id,
+                'message' => 'Your repair request has been rejected. Reason: ' . $request->rejection_message,
+                'status' => 'Rejected',
+                'is_read' => false
+            ]);
+            
+            Notification::create([
+                'user_id' => auth()->id(),
+                'type' => 'repair_request',
+                'request_id' => $repairRequest->id,
+                'message' => 'You rejected repair request #' . $repairRequest->id . '. Reason: ' . $request->rejection_message,
+                'status' => 'Rejected',
+                'is_read' => false
+            ]);
+            
+            return redirect()->back()->with('success', 'Repair request rejected!');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
+        }
     }
     
     public function complete($id){
@@ -130,6 +169,15 @@ class RepairRequestController extends Controller
                 'type' => 'repair_request',
                 'request_id' => $repairRequest->id,
                 'message' => 'Your equipment repair is complete. You can now request the equipment again.',
+                'status' => 'Completed',
+                'is_read' => false
+            ]);
+
+            Notification::create([
+                'user_id' => auth()->id(),
+                'type' => 'repair_request',
+                'request_id' => $repairRequest->id,
+                'message' => 'You completed repair request #' . $repairRequest->id,
                 'status' => 'Completed',
                 'is_read' => false
             ]);
