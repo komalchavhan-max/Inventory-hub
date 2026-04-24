@@ -49,4 +49,13 @@ class NotificationHelper
             'is_read' => false
         ]);
     }
+    
+    public static function getAdminUsers(){
+        $adminRole = Role::where('name', 'admin')->first();
+        if (!$adminRole) {
+            return collect([]);
+        }
+        return User::where('role_id', $adminRole->id)->get();
+    }
+    
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
 
 class NotificationController extends Controller
 {  
@@ -67,14 +68,29 @@ class NotificationController extends Controller
     }
     
     public function index(){
+        return view('notifications.index');
+    }
+
+    public function getNotificationsData(){
         $notifications = Notification::where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->select('notifications.*');
         
-        if (auth()->user()->isAdmin()){    // Check if user is admin or employee
-            return view('notifications.index', compact('notifications'));
-        }
-        
-        return view('employee.notifications.index', compact('notifications'));
+        return DataTables::of($notifications)
+            ->addColumn('action', function($row) {
+                if (!$row->is_read) {
+                    return '<button class="btn btn-sm btn-outline-primary mark-read-btn" data-id="'.$row->id.'">Mark read</button>';
+                }
+                return '<span class="text-muted">Read</span>';
+            })
+            ->editColumn('status', function($row) {
+                $colors = ['Approved' => 'success', 'Rejected' => 'danger', 'Info' => 'info', 'Completed' => 'success'];
+                $color = $colors[$row->status] ?? 'secondary';
+                return '<span class="badge bg-'.$color.'">'.$row->status.'</span>';
+            })
+            ->editColumn('created_at', function($row) {
+                return $row->created_at->diffForHumans();
+            })
+            ->rawColumns(['action', 'status'])
+            ->make(true);
     }
 }

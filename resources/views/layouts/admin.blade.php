@@ -568,6 +568,7 @@
             .welcome-banner { flex-direction: column; align-items: flex-start; }
             .user-menu .name { display: none; }
         }
+        
     </style>
     @stack('styles')
 </head>

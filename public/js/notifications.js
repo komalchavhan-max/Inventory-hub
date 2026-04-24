@@ -1,12 +1,19 @@
-// notifications.js - Fixed version with proper polling management
-
+// notifications.js - Fixed version with proper stop conditions
 let notificationInterval = null;
 let pollingCount = 0;
-const MAX_POLLING = 50; // Stop after 50 polls (25 minutes)
+let isPageVisible = true;
+let isUserActive = true;
+let inactiveTimer = null;
+const MAX_POLLING = 30;        // Stop after 30 polls (15 minutes)
+const INACTIVE_TIMEOUT = 300000; // 5 minutes of inactivity
 
 function loadNotifications() {
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    if (!isPageVisible || !isUserActive) {
+        console.log('Polling skipped - page hidden or user inactive');
+        return;
+    }
     
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     if (!token) return;
     
     fetch('/notifications/fetch', {
@@ -43,9 +50,6 @@ function loadNotifications() {
             } else if (notif.status === 'Info') {
                 statusClass = 'info';
                 statusText = 'ℹ Info';
-            } else if (notif.status === 'Completed') {
-                statusClass = 'success';
-                statusText = '✓ Completed';
             }
             
             const unreadClass = notif.is_read ? '' : 'unread';
@@ -69,10 +73,6 @@ function loadNotifications() {
     })
     .catch(error => {
         console.error('Error loading notifications:', error);
-        const container = document.getElementById('notificationList');
-        if (container) {
-            container.innerHTML = '<div class="text-center py-3 text-danger">Error loading notifications</div>';
-        }
     });
 }
 
@@ -116,30 +116,41 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function resetInactiveTimer() {
+    isUserActive = true;
+    if (inactiveTimer) {
+        clearTimeout(inactiveTimer);
+    }
+    inactiveTimer = setTimeout(() => {
+        isUserActive = false;
+        console.log('User inactive - polling stopped');
+    }, INACTIVE_TIMEOUT);
+}
+
 function startPolling() {
-    if (notificationInterval) {       // Clear any existing interval
+    if (notificationInterval) {            // Clear any existing interval
         clearInterval(notificationInterval);
         notificationInterval = null;
     }
     
     pollingCount = 0;
+    isPageVisible = true;
+    isUserActive = true;
     
     notificationInterval = setInterval(function() {
         pollingCount++;
         
-        if (pollingCount >= MAX_POLLING) {        // Stop polling after max attempts
+        if (pollingCount >= MAX_POLLING) {     // Stop after maximum polls
             clearInterval(notificationInterval);
             notificationInterval = null;
-            console.log('Notifications polling stopped (max limit reached)');
+            console.log('Notifications polling stopped (max limit of ' + MAX_POLLING + ' polls reached)');
             return;
         }
         
-        if (!document.hidden) {          // Only poll if page is visible
-            loadNotifications();
-        }
+        loadNotifications();
     }, 30000);
     
-    console.log('Notifications polling started');
+    console.log('Notifications polling started - will stop after ' + MAX_POLLING + ' polls');
 }
 
 function stopPolling() {
@@ -150,11 +161,17 @@ function stopPolling() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {        // Initialize when page loads
+document.addEventListener('mousemove', resetInactiveTimer);    // Track user activity
+document.addEventListener('keypress', resetInactiveTimer);
+document.addEventListener('click', resetInactiveTimer);
+document.addEventListener('scroll', resetInactiveTimer);
+
+document.addEventListener('DOMContentLoaded', function() {      // Initialize
     loadNotifications();
     startPolling();
+    resetInactiveTimer();
     
-    const markAllBtn = document.getElementById('markAllReadBtn');      // Mark all as read button
+    const markAllBtn = document.getElementById('markAllReadBtn');
     if (markAllBtn) {
         markAllBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -162,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {        // Initialize 
         });
     }
     
-    document.addEventListener('click', function(e) {        // Click on notification item
+    document.addEventListener('click', function(e) {
         const item = e.target.closest('.notification-item');
         if (item && item.classList && item.classList.contains('unread')) {
             const id = item.getAttribute('data-id');
@@ -170,16 +187,17 @@ document.addEventListener('DOMContentLoaded', function() {        // Initialize 
         }
     });
     
-    document.addEventListener('visibilitychange', function() {   // Stop polling when tab is hidden
+    document.addEventListener('visibilitychange', function() {    
+        isPageVisible = !document.hidden;
         if (document.hidden) {
             stopPolling();
         } else {
             startPolling();
-            loadNotifications(); // Immediate check when tab becomes visible
+            loadNotifications();
         }
     });
 });
 
-window.addEventListener('beforeunload', function() {    // Stop polling when leaving the page
+window.addEventListener('beforeunload', function() {    // Stop polling when page is closed
     stopPolling();
 });

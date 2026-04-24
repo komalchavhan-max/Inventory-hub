@@ -73,12 +73,11 @@ class RequestManagementController extends Controller
     }
     
     public function rejectExchangeRequest(Request $request, $id){
-        $exchangeRequest = ExchangeRequest::findOrFail($id);
-        
         $request->validate([
             'rejection_message' => 'required|string|min:5'
         ]);
         
+        $exchangeRequest = ExchangeRequest::findOrFail($id);
         $exchangeRequest->status = 'Rejected';
         $exchangeRequest->admin_message = $request->rejection_message;
         $exchangeRequest->save();
@@ -88,6 +87,15 @@ class RequestManagementController extends Controller
             'type' => 'exchange_request',
             'request_id' => $exchangeRequest->id,
             'message' => 'Your exchange request has been rejected. Reason: ' . $request->rejection_message,
+            'status' => 'Rejected',
+            'is_read' => false
+        ]);
+        
+        Notification::create([
+            'user_id' => auth()->id(),
+            'type' => 'exchange_request',
+            'request_id' => $exchangeRequest->id,
+            'message' => 'You rejected exchange request #' . $exchangeRequest->id . '. Reason: ' . $request->rejection_message,
             'status' => 'Rejected',
             'is_read' => false
         ]);
@@ -112,12 +120,11 @@ class RequestManagementController extends Controller
     }
     
     public function rejectRepairRequest(Request $request, $id){
-        $repairRequest = RepairRequest::findOrFail($id);
-        
         $request->validate([
             'rejection_message' => 'required|string|min:5'
         ]);
         
+        $repairRequest = RepairRequest::findOrFail($id);
         $repairRequest->status = 'Rejected';
         $repairRequest->admin_message = $request->rejection_message;
         $repairRequest->save();
@@ -127,6 +134,15 @@ class RequestManagementController extends Controller
             'type' => 'repair_request',
             'request_id' => $repairRequest->id,
             'message' => 'Your repair request has been rejected. Reason: ' . $request->rejection_message,
+            'status' => 'Rejected',
+            'is_read' => false
+        ]);
+        
+        Notification::create([
+            'user_id' => auth()->id(),
+            'type' => 'repair_request',
+            'request_id' => $repairRequest->id,
+            'message' => 'You rejected repair request #' . $repairRequest->id . '. Reason: ' . $request->rejection_message,
             'status' => 'Rejected',
             'is_read' => false
         ]);
@@ -167,21 +183,29 @@ class RequestManagementController extends Controller
     }
     
     public function rejectReturnRequest(Request $request, $id){
-        $returnRequest = ReturnRequest::findOrFail($id);
-        
         $request->validate([
             'rejection_message' => 'required|string|min:5'
         ]);
         
+        $returnRequest = ReturnRequest::findOrFail($id);
         $returnRequest->status = 'Rejected';
         $returnRequest->admin_message = $request->rejection_message;
         $returnRequest->save();
-        
+
         Notification::create([
             'user_id' => $returnRequest->user_id,
             'type' => 'return_request',
             'request_id' => $returnRequest->id,
             'message' => 'Your return request has been rejected. Reason: ' . $request->rejection_message,
+            'status' => 'Rejected',
+            'is_read' => false
+        ]);
+
+        Notification::create([
+            'user_id' => auth()->id(),
+            'type' => 'return_request',
+            'request_id' => $returnRequest->id,
+            'message' => 'You rejected return request #' . $returnRequest->id . '. Reason: ' . $request->rejection_message,
             'status' => 'Rejected',
             'is_read' => false
         ]);

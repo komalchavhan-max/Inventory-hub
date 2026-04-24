@@ -52,30 +52,51 @@ class ReturnRequestController extends Controller
             'rejection_message' => 'required|string|min:5'
         ]);
         
-        $returnRequest = ReturnRequest::findOrFail($id);
-        $returnRequest->status = 'Rejected';
-        $returnRequest->admin_message = $request->rejection_message;
-        $returnRequest->save();
+        DB::beginTransaction();
         
-        Notification::create([
-            'user_id' => $returnRequest->user_id,
-            'type' => 'return_request',
-            'request_id' => $returnRequest->id,
-            'message' => 'Your return request has been rejected. Reason: ' . $request->rejection_message,
-            'status' => 'Rejected',
-            'is_read' => false
-        ]);
-
-        Notification::create([
-            'user_id' => auth()->id(),
-            'type' => 'return_request',
-            'request_id' => $returnRequest->id,
-            'message' => 'You rejected return request #' . $returnRequest->id . '. Reason: ' . $request->rejection_message,
-            'status' => 'Rejected',
-            'is_read' => false
-        ]);
-        
-        return redirect()->back()->with('success', 'Return request rejected!');
+        try {
+            $returnRequest = ReturnRequest::where('id', $id)->lockForUpdate()->first();
+            
+            if (!$returnRequest) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Return request not found.');
+            }
+            
+            if ($returnRequest->status !== 'Pending') {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Request has already been processed.');
+            }
+            
+            $returnRequest->status = 'Rejected';
+            $returnRequest->admin_message = $request->rejection_message;
+            $returnRequest->save();
+            
+            DB::commit();
+            
+            Notification::create([
+                'user_id' => $returnRequest->user_id,
+                'type' => 'return_request',
+                'request_id' => $returnRequest->id,
+                'message' => 'Your return request has been rejected. Reason: ' . $request->rejection_message,
+                'status' => 'Rejected',
+                'is_read' => false
+            ]);
+            
+            Notification::create([
+                'user_id' => auth()->id(),
+                'type' => 'return_request',
+                'request_id' => $returnRequest->id,
+                'message' => 'You rejected return request #' . $returnRequest->id . '. Reason: ' . $request->rejection_message,
+                'status' => 'Rejected',
+                'is_read' => false
+            ]);
+            
+            return redirect()->back()->with('success', 'Return request rejected!');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
+        }
     }
     
     public function complete($id){
