@@ -1,7 +1,5 @@
 @extends('layouts.admin')
 
-@section('title', 'My Notifications')
-
 @section('content')
 <div class="container-fluid">
     <div class="card">

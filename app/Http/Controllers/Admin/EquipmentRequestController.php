@@ -17,8 +17,31 @@ class EquipmentRequestController extends Controller
         return view('admin.requests.equipment');
     }
     
-    public function getEquipmentRequestsData(){
-        $requests = EquipmentRequest::with(['user', 'equipment'])->select('equipment_requests.*');
+    public function getEquipmentRequestsData(Request $request){
+        $requests = EquipmentRequest::select('equipment_requests.*','users.name as employee_name', 'equipment.name as equipment_name')
+                                     ->leftJoin('users', 'equipment_requests.user_id', '=', 'users.id')
+                                     ->leftJoin('equipment', 'equipment_requests.equipment_id', '=', 'equipment.id');
+
+        if ($request->has('order')) {
+            $columnIndex = $request->input('order')[0]['column'];
+            $sortDirection = $request->input('order')[0]['dir'];
+
+            $columns = [
+                0 => 'equipment_requests.id',
+                1 => 'users.name',          
+                2 => 'equipment.name',       
+                3 => 'equipment_requests.priority',
+                4 => 'equipment_requests.request_date',
+                5 => 'equipment_requests.status',
+            ];
+            
+            if (isset($columns[$columnIndex])) {
+                $requests->orderBy($columns[$columnIndex], $sortDirection);
+            }
+        } else {
+            $requests->orderBy('equipment_requests.id', 'desc');
+        }
+        
         return DataTableService::equipmentRequestsData($requests);
     }
 

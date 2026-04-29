@@ -8,8 +8,7 @@ class Category extends Model
 {
     protected $fillable = [
         'name', 'slug', 'description', 'icon'
-    ];
-    
+    ];  
     public function equipment(){
         return $this->hasMany(Equipment::class);
     }

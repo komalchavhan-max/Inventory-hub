@@ -1,7 +1,5 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard')
-
 @section('content')
 <div class="welcome-banner">
     <div>
@@ -13,51 +11,55 @@
     </div>
 </div>
 
-<div class="row g-3 mb-1">
-    <div class="col-xl col-lg-4 col-md-6">
-        <div class="card stat-card mb-0">
-            <div class="stat-icon tint-primary"><i class="bi bi-box-seam"></i></div>
-            <div>
-                <div class="stat-label">Total Equipment</div>
-                <div class="stat-value">{{ $totalEquipment ?? 0 }}</div>
+<div class="row g-3">
+    <!-- Total Equipment -->
+    <div class="col-md-2 col-sm-4 col-6">
+         <a href="{{ route('admin.equipment.index', ['status' => 'All Status']) }}" class="text-decoration-none">
+            <div class="card stat-card text-center p-3">
+                <div class="stat-value fw-bold fs-2 ">{{ $totalEquipment ?? 0 }}</div>
+                 <div class="stat-label text-muted small">Total Equipment</div>
             </div>
-        </div>
+        </a>
     </div>
-    <div class="col-xl col-lg-4 col-md-6">
-        <div class="card stat-card mb-0">
-            <div class="stat-icon tint-success"><i class="bi bi-check-circle"></i></div>
-            <div>
-                <div class="stat-label">Available</div>
-                <div class="stat-value text-success-ih">{{ $available ?? 0 }}</div>
+    
+    <!-- Available -->
+    <div class="col-md-2 col-sm-4 col-6">
+        <a href="{{ route('admin.equipment.index', ['status' => 'Available']) }}" class="text-decoration-none">
+            <div class="card stat-card text-center p-3">
+                <div class="stat-value fw-bold fs-2 text-success">{{ $available ?? 0 }}</div>
+                <div class="stat-label text-muted small">Available</div>
             </div>
-        </div>
+        </a>
     </div>
-    <div class="col-xl col-lg-4 col-md-6">
-        <div class="card stat-card mb-0">
-            <div class="stat-icon tint-warning"><i class="bi bi-person-check"></i></div>
-            <div>
-                <div class="stat-label">Assigned</div>
-                <div class="stat-value text-warning-ih">{{ $assigned ?? 0 }}</div>
+    
+    <!-- Assigned -->
+    <div class="col-md-2 col-sm-4 col-6">
+        <a href="{{ route('admin.equipment.index', ['status' => 'Assigned']) }}" class="text-decoration-none">
+            <div class="card stat-card text-center p-3">
+                <div class="stat-value fw-bold fs-2 text-warning">{{ $assigned ?? 0 }}</div>
+                <div class="stat-label text-muted small">Assigned</div>
             </div>
-        </div>
+        </a>
     </div>
-    <div class="col-xl col-lg-4 col-md-6">
-        <div class="card stat-card mb-0">
-            <div class="stat-icon tint-slate"><i class="bi bi-archive"></i></div>
-            <div>
-                <div class="stat-label">Archived</div>
-                <div class="stat-value">{{ $archived ?? 0 }}</div>
+    
+    <!-- In Repair  -->
+    <div class="col-md-2 col-sm-4 col-6">
+        <a href="{{ route('admin.equipment.index', ['status' => 'In-Repair']) }}" class="text-decoration-none">
+            <div class="card stat-card text-center p-3">
+                <div class="stat-value fw-bold fs-2 text-danger">{{ $inRepair ?? 0 }}</div>
+                <div class="stat-label text-muted small">In Repair</div>
             </div>
-        </div>
+        </a>
     </div>
-    <div class="col-xl col-lg-4 col-md-6">
-        <div class="card stat-card mb-0">
-            <div class="stat-icon tint-danger"><i class="bi bi-tools"></i></div>
-            <div>
-                <div class="stat-label">In Repair</div>
-                <div class="stat-value text-danger-ih">{{ $inRepair ?? 0 }}</div>
+    
+    <!-- Archived -->
+    <div class="col-md-2 col-sm-4 col-6">
+        <a href="{{ route('admin.equipment.index', ['status' => 'Archived']) }}" class="text-decoration-none">
+            <div class="card stat-card text-center p-3">
+                <div class="stat-value fw-bold fs-2 text-secondary">{{ $archived ?? 0 }}</div>
+                <div class="stat-label text-muted small">Archived</div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
@@ -83,6 +85,7 @@
                             @forelse($recentEquipment ?? [] as $item)
                                 @php
                                     $statusMap = [
+                                        'All Status' => ['tint-success', 'All Status'],
                                         'Available' => ['tint-success', 'Available'],
                                         'Assigned'  => ['tint-warning', 'Assigned'],
                                         'In-Repair' => ['tint-danger',  'In Repair'],

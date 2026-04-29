@@ -1,7 +1,5 @@
 @extends('layouts.admin')
 
-@section('title', 'Equipment Details')
-
 @section('content')
 @php
     $statusMap = [
@@ -39,10 +37,6 @@
                             <td>{{ $equipment->name }}</td>
                         </tr>
                         <tr>
-                            <th>Serial Number</th>
-                            <td class="text-muted">{{ $equipment->serial_number }}</td>
-                        </tr>
-                        <tr>
                             <th>Category</th>
                             <td>{{ $equipment->category->name ?? 'Uncategorized' }}</td>
                         </tr>
@@ -66,23 +60,29 @@
                         </tr>
                         <tr>
                             <th>Purchase Date</th>
-                            <td class="text-muted">{{ $equipment->purchase_date ?? 'Not specified' }}</td>
+                            <td class="text-dark">{{ $equipment->purchase_date ? date('d-m-Y', strtotime($equipment->purchase_date)) : 'N/A' }}</td>
                         </tr>
                         <tr>
                             <th>Warranty Until</th>
-                            <td class="text-muted">{{ $equipment->warranty_until ?? 'Not specified' }}</td>
+                            <td class="text-dark">{{ $equipment->warranty_until ? date('d-m-Y', strtotime($equipment->warranty_until)) : 'N/A' }}</td>
                         </tr>
-                        <tr>
                             <th>Description</th>
                             <td>{{ $equipment->description ?? 'No description' }}</td>
                         </tr>
                         <tr>
-                            <th class="align-top">Specifications</th>
+                            <th>Specifications</th>
                             <td>
-                                @if($equipment->specifications)
-                                    <pre class="mb-0 p-3 rounded" style="background: var(--ih-bg); border: 1px solid var(--ih-border-soft); font-size: 0.85rem;">{{ is_string($equipment->specifications) ? $equipment->specifications : json_encode($equipment->specifications, JSON_PRETTY_PRINT) }}</pre>
+                                @php
+                                    $specs = json_decode($equipment->specifications, true);
+                                @endphp
+                                @if($specs && is_array($specs))
+                                    <ul class="mb-0">
+                                        @foreach($specs as $key => $value)
+                                            <li><strong>{{ ucfirst($key) }}:</strong> {{ $value }}</li>
+                                        @endforeach
+                                    </ul>
                                 @else
-                                    <span class="text-muted">No specifications</span>
+                                    {{ $equipment->specifications ?? 'No specifications' }}
                                 @endif
                             </td>
                         </tr>

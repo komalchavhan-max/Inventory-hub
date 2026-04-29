@@ -16,8 +16,47 @@ class CategoryController extends Controller
         return view('admin.categories.index');
     }
 
-    public function getCategoriesData(){
-        $categories = Category::withCount('equipment')->select('categories.*');
+    public function getCategoriesData(Request $request){
+        $categories = Category::select(
+                'categories.id',
+                'categories.name',
+                'categories.slug',
+                'categories.icon',
+                'categories.description',
+                'categories.created_at',
+                'categories.updated_at',
+                \DB::raw('COUNT(DISTINCT equipment.id) as equipment_count')
+            )
+            ->leftJoin('equipment', 'equipment.category_id', '=', 'categories.id')
+            ->groupBy(
+                'categories.id',
+                'categories.name',
+                'categories.slug',
+                'categories.icon',
+                'categories.description',
+                'categories.created_at',
+                'categories.updated_at'
+            );
+        
+        if ($request->has('order')) {
+            $columnIndex = $request->input('order')[0]['column'];
+            $sortDirection = $request->input('order')[0]['dir'];
+            
+            $columns = [
+                0 => 'categories.id',
+                1 => 'categories.name', 
+                3 => 'categories.slug',
+                4 => 'categories.description',
+                5 => 'equipment_count'
+            ];
+            
+            if (isset($columns[$columnIndex])) {
+                $categories->orderBy($columns[$columnIndex], $sortDirection);
+            }
+        } else {
+            $categories->orderBy('categories.id', 'asc');
+        }
+        
         return DataTableService::categoriesData($categories);
     }
     
@@ -26,13 +65,11 @@ class CategoryController extends Controller
         return view('admin.categories.create', compact('categories'));
     }
     
-    public function store(CategoryStoreRequest $request){
+   public function store(CategoryStoreRequest $request){
         Category::create($request->validated());
-        
-        return redirect()->route('admin.categories.index')
-            ->with('success', 'Category created successfully!');
+        return redirect()->route('admin.categories.index')->with('success', 'Category created!');
     }
-    
+
     public function edit($id){
         $category = Category::findOrFail($id);
         return view('admin.categories.edit', compact('category'));

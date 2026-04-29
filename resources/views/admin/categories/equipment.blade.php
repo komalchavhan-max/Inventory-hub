@@ -1,7 +1,4 @@
 @extends('layouts.admin')
-
-@section('title', 'Equipment - ' . $category->name)
-
 @section('content')
 @php
     $statusMap = [

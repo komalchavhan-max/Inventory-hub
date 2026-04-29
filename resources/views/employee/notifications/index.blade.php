@@ -1,7 +1,5 @@
 @extends('layouts.employee')
 
-@section('title', 'My Notifications')
-
 @section('content')
 <div class="container-fluid">
     <div class="row">

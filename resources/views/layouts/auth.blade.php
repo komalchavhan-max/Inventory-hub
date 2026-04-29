@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Authentication') - Inventory Hub</title>
-    <link rel="shortcut icon" type="image/png" href="{{ asset('src/assets/images/logos/favicon.png') }}" />
+    <title>{{ \App\Helpers\TitleHelper::getTitle() }} - Inventory Hub</title>
+    <link rel="shortcut icon" type="image/png" href="{{asset('favicon.svg')}}" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -353,10 +353,8 @@
                 <p>@yield('brand_subheading', 'Track equipment, handle requests, and keep your team productive — all in one place.')</p>
 
                 <ul class="auth-feature-list">
-                    <li><i class="bi bi-check-lg"></i> Real-time visibility into every asset</li>
-                    <li><i class="bi bi-check-lg"></i> Streamlined request and approval workflows</li>
-                    <li><i class="bi bi-check-lg"></i> Maintenance history at your fingertips</li>
-                </ul>
+                    <li><i class="bi bi-check-lg"></i> A centralized platform designed to help administrators and employees manage equipment, track requests, and ensure seamless operational flow.</li>
+
             </div>
 
             <div class="auth-brand-footer">

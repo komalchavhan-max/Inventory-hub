@@ -17,7 +17,7 @@
                     <h5 class="mb-0">Equipment Return Form</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('employee.requests.return.store') }}" method="POST">
+                    <form action="{{ route('employee.requests.return.store') }}" method="POST" class="needs-validation" novalidate>
                         @csrf
                         
                         <!-- Equipment Selection -->
@@ -60,7 +60,7 @@
                         </div>
                         
                         <div class="mt-4">
-                            <button type="submit" class="btn btn-info">
+                            <button type="submit" class="btn btn-primary">
                                 Submit Return Request
                             </button>
                             <a href="{{ route('employee.dashboard') }}" class="btn btn-secondary">

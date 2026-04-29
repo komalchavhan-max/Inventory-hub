@@ -18,8 +18,39 @@ class ExchangeRequestController extends Controller
     }
     
     public function getExchangeRequestsData(Request $request){
-        $requests = ExchangeRequest::with(['user', 'oldEquipment', 'requestedEquipment'])->select('exchange_requests.*');
-        return DataTableService::exchangeRequestsData($requests, $request);
+        $requests = ExchangeRequest::select(
+                'exchange_requests.*',
+                'users.name as employee_name',
+                'old_equipment.name as old_equipment_name',
+                'new_equipment.name as requested_equipment_name'
+            )
+            ->leftJoin('users', 'exchange_requests.user_id', '=', 'users.id')
+            ->leftJoin('equipment as old_equipment', 'exchange_requests.old_equipment_id', '=', 'old_equipment.id')
+            ->leftJoin('equipment as new_equipment', 'exchange_requests.requested_equipment_id', '=', 'new_equipment.id');
+      
+        if ($request->has('order')) {
+            $columnIndex = $request->input('order')[0]['column'];
+            $sortDirection = $request->input('order')[0]['dir'];
+           
+            $columns = [
+                0 => 'exchange_requests.id',
+                1 => 'users.name',              
+                2 => 'old_equipment.name',     
+                3 => 'new_equipment.name',      
+                4 => 'exchange_requests.exchange_reason',
+                5 => 'exchange_requests.has_damage',
+                6 => 'exchange_requests.request_date',
+                7 => 'exchange_requests.status',
+            ];
+            
+            if (isset($columns[$columnIndex])) {
+                $requests->orderBy($columns[$columnIndex], $sortDirection);
+            }
+        } else {
+            $requests->orderBy('exchange_requests.id', 'desc');
+        }
+        
+        return DataTableService::exchangeRequestsData($requests);
     }
     
     public function approve($id){

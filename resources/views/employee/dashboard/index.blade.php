@@ -1,7 +1,5 @@
 @extends('layouts.employee')
 
-@section('title', 'Dashboard')
-
 @section('content')
 <div class="welcome-banner">
     <div>

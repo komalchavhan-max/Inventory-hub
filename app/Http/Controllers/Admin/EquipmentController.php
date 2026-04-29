@@ -14,58 +14,21 @@ use App\Services\DataTableService;
 
 class EquipmentController extends Controller
 {
-    public function index(){ 
+    public function index(Request $request){ 
         return view('admin.equipment.index');
     }
 
-    public function getEquipmentData(){
-        $equipment = Equipment::with(['category', 'assignedUser'])->select('equipment.*');
+    public function getEquipmentData(Request $request){
+        $equipment = Equipment::query()
+            ->select('equipment.*','categories.name as category_name','users.name as assigned_to_name')
+            ->leftJoin('categories', 'equipment.category_id', '=', 'categories.id')
+            ->leftJoin('users', 'equipment.assigned_to', '=', 'users.id');
         
-        return DataTables::of($equipment)
-            ->addColumn('category_name', function($row) {
-                return $row->category->name ?? 'Uncategorized';
-            })
-            ->addColumn('assigned_to_name', function($row) {
-                return $row->assignedUser->name ?? 'Not Assigned';
-            })
-            ->addColumn('action', function($row){
-                $view = '<a href="'.route('admin.equipment.show', $row->id).'" class="action-btn view" title="View" aria-label="View"><i class="bi bi-eye"></i></a>';
-
-                if ($row->status == 'Archived'){
-                    return '<div class="action-group">'.$view.'
-                                <form action="'.route('admin.equipment.restore', $row->id).'" method="POST">
-                                    '.csrf_field().'
-                                    <button type="submit" class="action-btn restore" title="Restore" aria-label="Restore"><i class="bi bi-arrow-counterclockwise"></i></button>
-                                </form>
-                            </div>';
-                }
-
-                return '<div class="action-group">'.$view.'
-                            <a href="'.route('admin.equipment.edit', $row->id).'" class="action-btn edit" title="Edit" aria-label="Edit"><i class="bi bi-pencil"></i></a>
-                            <form action="'.route('admin.equipment.destroy', $row->id).'" method="POST" onsubmit="return confirm(\'Archive this equipment?\');">
-                                '.csrf_field().'
-                                '.method_field('DELETE').'
-                                <button type="submit" class="action-btn archive" title="Archive" aria-label="Archive"><i class="bi bi-archive"></i></button>
-                            </form>
-                        </div>';
-            })
-            ->editColumn('status', function($row){
-                $map = [
-                    'Available' => ['tint-success', 'Available'],
-                    'Assigned'  => ['tint-warning', 'Assigned'],
-                    'In-Repair' => ['tint-danger',  'In Repair'],
-                    'Archived'  => ['tint-slate',   'Archived'],
-                ];
-                [$cls, $label] = $map[$row->status] ?? ['tint-slate', $row->status];
-                return '<span class="badge-pill '.$cls.'">'.$label.'</span>';
-            })
-            ->editColumn('condition', function($row){
-                $map = ['New' => 'tint-info', 'Good' => 'tint-success', 'Fair' => 'tint-warning', 'Poor' => 'tint-danger'];
-                $cls = $map[$row->condition] ?? 'tint-slate';
-                return '<span class="badge-pill '.$cls.'">'.$row->condition.'</span>';
-            })
-            ->rawColumns(['action', 'status', 'condition'])
-            ->make(true);
+        if ($request->has('status') && $request->status != '') {
+            $equipment->where('equipment.status', $request->status);
+        }
+        
+        return DataTableService::equipmentData($equipment);
     }
     
     public function create(){
@@ -76,13 +39,28 @@ class EquipmentController extends Controller
     
     public function store(EquipmentStoreRequest $request){
         $validated = $request->validated();
-
+        
         if (!empty($validated['specifications'])) {
-            $decoded = json_decode($validated['specifications']);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                return back()->withErrors(['specifications' => 'Invalid JSON format'])->withInput();
+            if (json_decode($validated['specifications']) === null) {
+                $text = $validated['specifications'];
+                $jsonArray = [];
+
+                if (strpos($text, ':') !== false || strpos($text, '=') !== false) {
+                    $pairs = preg_split('/[,\n]/', $text);
+                    foreach ($pairs as $pair) {
+                        $parts = preg_split('/[:=]/', $pair);
+                        if (count($parts) == 2) {
+                            $key = trim($parts[0]);
+                            $value = trim($parts[1]);
+                            $jsonArray[$key] = $value;
+                        }
+                    }
+                } else {
+                    $jsonArray['specification'] = $text;
+                }
+                
+                $validated['specifications'] = json_encode($jsonArray);
             }
-            $validated['specifications'] = $validated['specifications'];
         }
         
         $validated['status'] = 'Available';
@@ -106,19 +84,35 @@ class EquipmentController extends Controller
     public function update(EquipmentUpdateRequest $request, $id){
         $equipment = Equipment::findOrFail($id);
         
-       $validated = $request->validated();
+        $validated = $request->validated();
         
         if (!empty($validated['specifications'])) {
-            $decoded = json_decode($validated['specifications']);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                return back()->withErrors(['specifications' => 'Invalid JSON format'])->withInput();
+            if (json_decode($validated['specifications']) === null) {
+                $text = $validated['specifications'];
+                $jsonArray = [];
+
+                if (strpos($text, ':') !== false || strpos($text, '=') !== false) {
+                    $pairs = preg_split('/[,\n]/', $text);
+                    foreach ($pairs as $pair) {
+                        $parts = preg_split('/[:=]/', $pair);
+                        if (count($parts) == 2) {
+                            $key = trim($parts[0]);
+                            $value = trim($parts[1]);
+                            $jsonArray[$key] = $value;
+                        }
+                    }
+                } else {
+                    $jsonArray['specification'] = $text;
+                }
+                
+                $validated['specifications'] = json_encode($jsonArray);
             }
-            $validated['specifications'] = $validated['specifications'];
         }
         
         $equipment->update($validated);
         
-        return redirect()->route('admin.equipment.index')->with('success', 'Equipment updated successfully!');
+        return redirect()->route('admin.equipment.index')
+            ->with('success', 'Equipment "' . $equipment->name . '" updated successfully!');
     }
     
     public function destroy($id){

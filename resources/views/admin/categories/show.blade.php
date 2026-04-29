@@ -1,7 +1,5 @@
 @extends('layouts.admin')
 
-@section('title', 'Category Details')
-
 @section('content')
 <div class="container-fluid">
     <div class="card">
@@ -60,7 +58,7 @@
                 <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back to List
                 </a>
-                <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-warning">
+                <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-primary">
                     <i class="bi bi-pencil"></i> Edit Category
                 </a>
             </div>

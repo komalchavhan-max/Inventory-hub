@@ -1,6 +1,4 @@
 @extends('layouts.auth')
-
-@section('title', 'Login')
 @section('brand_heading', 'Welcome back to Inventory Hub.')
 @section('brand_subheading', 'Sign in to access your dashboard, manage equipment, and keep your team moving.')
 

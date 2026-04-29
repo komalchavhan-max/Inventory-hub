@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Reset Password - Inventory Hub</title>
-    <link rel="shortcut icon" type="image/png" href="{{ asset('src/assets/images/logos/favicon.png') }}" />
+    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.svg')  }}" />
     <link rel="stylesheet" href="{{ asset('src/assets/css/styles.min.css') }}" />
 </head>
 <body>

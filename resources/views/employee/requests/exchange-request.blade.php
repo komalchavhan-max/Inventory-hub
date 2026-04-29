@@ -15,10 +15,9 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">Exchange Request Form</h5>
-                    <p class="text-muted mb-0">Exchange your old equipment for a new one</p>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('employee.requests.exchange.store') }}" method="POST" id="exchangeForm">
+                    <form action="{{ route('employee.requests.exchange.store') }}" method="POST" class="needs-validation" novalidate id="exchangeForm">
                         @csrf
                         
                         <!-- Current Equipment (Old) -->
@@ -28,8 +27,7 @@
                                 <option value="">-- Select Your Equipment --</option>
                                 @foreach($myEquipment as $item)
                                 <option value="{{ $item->id }}">
-                                    {{ $item->name }} - {{ $item->serial_number }}
-                                    (Condition: {{ $item->condition ?? 'Good' }})
+                                    {{ $item->name }}
                                 </option>
                                 @endforeach
                             </select>
@@ -42,8 +40,7 @@
                                 <option value="">-- Select New Equipment --</option>
                                 @foreach($availableEquipment as $item)
                                 <option value="{{ $item->id }}">
-                                    {{ $item->name }} - {{ $item->serial_number }}
-                                    ({{$item->category->name ?? 'Uncategorized'}})
+                                    {{ $item->name }} 
                                 </option>
                                 @endforeach
                             </select>

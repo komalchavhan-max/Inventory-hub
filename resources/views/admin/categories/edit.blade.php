@@ -1,61 +1,76 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit Category')
-
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Edit Category: {{ $category->name }}</h5>
-                    <p class="text-muted mb-0">Update category details</p>
+<div class="form-container">
+    <div class="form-card card">
+        <div class="card-header">
+            <h5 class="mb-0">✏️ Edit Category: {{ $category->name }}</h5>
+        </div>
+        <div class="card-body">
+            @include('components.form.error-messages')
+            
+            <form action="{{ route('admin.categories.update', $category->id) }}" method="POST" class="needs-validation" novalidate>
+                @csrf
+                @method('PUT')
+                
+                <div class="form-group">
+                    <label class="form-label">Category Name <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" value="{{ old('name', $category->name) }}" required minlength="2" maxlength="100">
+                    <div class="invalid-feedback">Category name is required (minimum 2 characters)</div>
                 </div>
-                <div class="card-body">
-                    <form action="{{ route('admin.categories.update', $category->id) }}" method="PATCH">
-                        @csrf
-                        @method('PUT')
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Category Name <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
-                                   value="{{ old('name', $category->name) }}" required>
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <textarea name="description" class="form-control @error('description') is-invalid @enderror" 
-                                      rows="3">{{ old('description', $category->description) }}</textarea>
-                            @error('description')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Icon (Bootstrap Icon Class)</label>
-                            <input type="text" name="icon" class="form-control @error('icon') is-invalid @enderror" 
-                                   value="{{ old('icon', $category->icon) }}" placeholder="bi-laptop, bi-display, bi-printer">
-                            <small class="text-muted">Current icon: @if($category->icon) <i class="{{ $category->icon }}"></i> {{ $category->icon }} @else None @endif</small>
-                            @error('icon')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="mt-4">
-                            <button type="submit" class="btn btn-primary">
-                                <iconify-icon icon="solar:check-read-line-duotone"></iconify-icon> Update Category
-                            </button>
-                            <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">
-                                <iconify-icon icon="solar:close-circle-line-duotone"></iconify-icon> Cancel
-                            </a>
-                        </div>
-                    </form>
+                
+                <div class="form-group">
+                    <label class="form-label">Slug</label>
+                    <input type="text" name="slug" class="form-control" value="{{ old('slug', $category->slug) }}">
+                    <div class="form-text">Leave empty to auto-generate from name</div>
                 </div>
-            </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Icon</label>
+                    <input type="text" name="icon" class="form-control" value="{{ old('icon', $category->icon) }}" placeholder="bi-laptop">
+                    <div class="form-text">
+                        Current: @if($category->icon) 
+                            <i class="{{ $category->icon }}"></i> {{ $category->icon }} 
+                        @else 
+                            None 
+                        @endif
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="3" data-maxlength="500">{{ old('description', $category->description) }}</textarea>
+                    <div class="char-counter">
+                        <span id="descriptionCount">0</span>/500 characters
+                    </div>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">💾 Update Category</button>
+                    <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">❌ Cancel</a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    // Character counter for description
+    $('#description').on('input', function() {
+        var length = $(this).val().length;
+        $('#descriptionCount').text(length);
+        if (length > 500) {
+            $('#descriptionCount').addClass('text-danger');
+        } else {
+            $('#descriptionCount').removeClass('text-danger');
+        }
+    });
+    
+    // Initialize character count
+    $('#descriptionCount').text($('textarea[name="description"]').val().length);
+});
+</script>
+@endpush

@@ -1,6 +1,4 @@
 @extends('layouts.auth')
-
-@section('title', 'Create Account')
 @section('brand_heading', 'Join Inventory Hub today.')
 @section('brand_subheading', "Set up your account in seconds and start bringing order to your organization's equipment.")
 

@@ -1,7 +1,5 @@
 @extends('layouts.admin')
 
-@section('title', 'Pending Requests')
-
 @section('content')
 <h4 class="mb-3">Pending Requests</h4>
 

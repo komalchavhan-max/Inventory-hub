@@ -63,9 +63,11 @@ class DataTableService
 
     private static function rejectButton($row, string $equipmentField = 'equipment'): string{
         $equipmentName = $row->{$equipmentField}->name ?? 'N/A';
+        $employeeName = $row->user->name ?? 'N/A';
+        
         return '<button type="button" class="action-btn reject reject-btn" title="Reject" aria-label="Reject"
                 data-id="'.$row->id.'"
-                data-employee="'.e($row->user->name ?? 'N/A').'"
+                data-employee="'.e($employeeName).'"
                 data-equipment="'.e($equipmentName).'"><i class="bi bi-x-lg"></i></button>';
     }
 
@@ -96,13 +98,18 @@ class DataTableService
             ->filter(function ($q) {
                 if ($search = request()->get('search')['value'] ?? null) {
                     $q->where(function ($inner) use ($search) {
-                        $inner->where('name', 'like', "%{$search}%")
-                              ->orWhere('serial_number', 'like', "%{$search}%");
+                        $inner->where('equipment.name', 'like', "%{$search}%")
+                            ->orWhere('categories.name', 'like', "%{$search}%")
+                            ->orWhere('users.name', 'like', "%{$search}%");
                     });
                 }
             })
-            ->addColumn('category_name', fn($row) => $row->category->name ?? 'Uncategorized')
-            ->addColumn('assigned_to_name', fn($row) => $row->assignedUser->name ?? 'Not Assigned')
+            ->addColumn('category_name', function($row) {
+                return $row->category_name ?? 'Uncategorized';
+            })
+            ->addColumn('assigned_to_name', function($row) {
+                return $row->assigned_to_name ?? 'Not Assigned';
+            })
             ->addColumn('action', function ($row) {
                 $view = '<a href="'.route('admin.equipment.show', $row->id).'" class="action-btn view" title="View" aria-label="View"><i class="bi bi-eye"></i></a>';
 
@@ -128,18 +135,26 @@ class DataTableService
             ->filter(function ($q) {
                 if ($search = request()->get('search')['value'] ?? null) {
                     $q->where(function ($inner) use ($search) {
-                        $inner->where('name', 'like', "%{$search}%")
-                            ->orWhere('slug', 'like', "%{$search}%")
-                            ->orWhere('description', 'like', "%{$search}%");
+                        $inner->where('categories.id', 'like', "%{$search}%")
+                            ->orWhere('categories.name', 'like', "%{$search}%")
+                            ->orWhere('categories.slug', 'like', "%{$search}%")
+                            ->orWhere('categories.description', 'like', "%{$search}%");
                     });
                 }
             })
             ->addColumn('icon_display', function ($row) {
-                return $row->icon ? '<i class="'.$row->icon.' me-1"></i>'.$row->name : $row->name;
+                return '<div class="d-flex align-items-center gap-2">
+                            <div class="category-icon">' . ($row->icon ? '<i class="'.$row->icon.'"></i>' : '<i class="bi bi-tag"></i>') . '</div>
+                            <span>' . e($row->name) . '</span>
+                        </div>';
             })
             ->addColumn('equipment_count', function ($row) {
-                $count = \App\Models\Equipment::where('category_id', $row->id)->count();
-                return '<span class="badge bg-primary">' . $count . '</span>';
+                $count = $row->equipment_count;
+                if ($count > 0) {
+                    return '<span class="count-chip tint-success" style="white-space: nowrap; display: inline-flex;">' . $count . '  Equipment</span>';
+                } else {
+                    return '<span class="count-chip tint-danger" style="white-space: nowrap; display: inline-flex;">' . $count . '  Equipment</span>';
+                }
             })
             ->addColumn('action', function ($row) {
                 $view = '<a href="'.route('admin.categories.show', $row->id).'" class="action-btn view" title="View" aria-label="View"><i class="bi bi-eye"></i></a>';
@@ -318,25 +333,39 @@ class DataTableService
             ->filter(function ($q) {
                 if ($search = request()->get('search')['value'] ?? null) {
                     $q->where(function ($inner) use ($search) {
-                        $inner->where('id', 'like', "%{$search}%")
-                              ->orWhere('issue_description', 'like', "%{$search}%")
-                              ->orWhere('technician_name', 'like', "%{$search}%")
-                              ->orWhere('cost', 'like', "%{$search}%")
-                              ->orWhere('repair_date', 'like', "%{$search}%")
-                              ->orWhereHas('equipment', fn($e) => $e->where('name', 'like', "%{$search}%")->orWhere('serial_number', 'like', "%{$search}%"));
+                        $inner->where('maintenance_logs.id', 'like', "%{$search}%")
+                            ->orWhere('maintenance_logs.issue_description', 'like', "%{$search}%")
+                            ->orWhere('maintenance_logs.repair_date', 'like', "%{$search}%")
+                            ->orWhere('equipment.name', 'like', "%{$search}%")
+                            ->orWhere('repair_requests.status', 'like', "%{$search}%");
                     });
                 }
             })
-            ->addColumn('equipment_name', fn($row) => $row->equipment->name ?? 'N/A')
-            ->addColumn('action', function ($row) {
-                return '<div class="action-group">
-                            <a href="'.route('admin.maintenance-logs.show', $row->id).'" class="action-btn view" title="View" aria-label="View"><i class="bi bi-eye"></i></a>
-                        </div>';
+            ->addColumn('equipment_name', function($row) {
+                return $row->equipment_name ?? 'N/A';
             })
-            ->editColumn('cost', fn($row) => '$'.number_format($row->cost, 2))
-            ->editColumn('repair_date', fn($row) => $row->repair_date ? date('d-m-Y', strtotime($row->repair_date)) : '—')
-            ->editColumn('created_at', fn($row) => $row->created_at ? date('d-m-Y', strtotime($row->created_at)) : '—')
-            ->rawColumns(['action'])
+            ->addColumn('status_display', function($row) {
+                $status = $row->repair_status ?? 'Pending';
+                
+                $map = [
+                    'Pending' => 'tint-warning',
+                    'Approved' => 'tint-info',
+                    'In-Progress' => 'tint-primary',
+                    'Completed' => 'tint-success',
+                    'Rejected' => 'tint-danger',
+                ];
+                
+                $class = $map[$status] ?? 'tint-warning';
+                
+                return '<span class="badge-pill ' . $class . '">' . $status . '</span>';
+            })
+            ->editColumn('repair_date', function($row) {
+                return $row->repair_date ? date('d-m-Y', strtotime($row->repair_date)) : '—';
+            })
+            ->editColumn('created_at', function($row) {
+                return $row->created_at ? date('d-m-Y', strtotime($row->created_at)) : '—';
+            })
+            ->rawColumns(['status_display'])
             ->make(true);
     }
 }

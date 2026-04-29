@@ -13,12 +13,11 @@
     <div class="row">
         <div class="col-lg-8 mx-auto">
             <div class="card">
-                <div class="card-header bg-warning bg-opacity-10">
+                <div class="card-header">
                     <h5 class="mb-0">🔧 Report Broken Equipment</h5>
-                    <p class="text-muted mb-0">Fill this form to report equipment that needs repair</p>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('employee.requests.repair.store') }}" method="POST">
+                    <form action="{{ route('employee.requests.repair.store') }}" method="POST" class="needs-validation" novalidate>
                         @csrf
                         
                         <!-- Equipment Selection -->
@@ -51,25 +50,9 @@
                                 <option value="Low"> Low - Minor issue, can wait</option>
                             </select>
                         </div>
-                                 
-                        <!-- Photos Available -->
-                        <div class="mb-3">
-                            <label class="form-label">Do you have photos of the issue?</label>
-                            <div class="d-flex gap-3">
-                                <div class="form-check">
-                                    <input type="radio" name="photos_available" value="1" class="form-check-input">
-                                    <label class="form-check-label">Yes</label>
-                                </div>
-                                <div class="form-check">
-                                    <input type="radio" name="photos_available" value="0" class="form-check-input" checked>
-                                    <label class="form-check-label">No</label>
-                                </div>
-                            </div>
-                        </div>
-                        
                         <div class="mt-4">
-                            <button type="submit" class="btn btn-warning">
-                                Submit Repair Request
+                             <button type="submit" class="btn btn-primary">
+                                Submit Reapir Request
                             </button>
                             <a href="{{ route('employee.dashboard') }}" class="btn btn-secondary">
                                 Cancel

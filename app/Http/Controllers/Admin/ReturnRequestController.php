@@ -16,8 +16,34 @@ class ReturnRequestController extends Controller
         return view('admin.requests.return');
     }
     
-    public function getReturnRequestsData(){
-        $requests = ReturnRequest::with(['user', 'equipment'])->select('return_requests.*');
+    public function getReturnRequestsData(Request $request){
+        $requests = ReturnRequest::select('return_requests.*',
+                'users.name as employee_name',
+                'equipment.name as equipment_name')
+                 ->leftJoin('users', 'return_requests.user_id', '=', 'users.id')
+                 ->leftJoin('equipment', 'return_requests.equipment_id', '=', 'equipment.id');
+
+         if ($request->has('order')) {
+            $columnIndex = $request->input('order')[0]['column'];
+            $sortDirection = $request->input('order')[0]['dir'];
+            
+            $columns = [
+                0 => 'return_requests.id',
+                1 => 'users.name',
+                2 => 'equipment.name',
+                3 => 'return_requests.return_reason',
+                4 => 'return_requests.equipment_condition',
+                5 => 'return_requests.return_date',
+                6 => 'return_requests.status',
+            ];
+            
+            if (isset($columns[$columnIndex])) {
+                $requests->orderBy($columns[$columnIndex], $sortDirection);
+            }
+        } else {
+            $requests->orderBy('return_requests.id', 'desc');
+        }     
+    
         return DataTableService::returnRequestsData($requests);
     }
     

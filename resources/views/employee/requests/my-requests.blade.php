@@ -2,14 +2,13 @@
 
 @section('content')
 <div class="container-fluid">
-    
     <!-- Page Header -->
     <div class="row">
         <div class="col-12">
-            <div class="card bg-primary bg-opacity-10">
+            <div class="card header-card">
                 <div class="card-body">
-                    <h4 class="mb-1">My Requests</h4>
-                    <p class="text-muted mb-0">Track all your equipment, exchange, repair, and return requests</p>
+                    <h4 class="mb-1">📋 My Requests</h4>
+                    <p class="mb-0 opacity-75">Track all your equipment, exchange, repair, and return requests</p>
                 </div>
             </div>
         </div>
@@ -22,25 +21,25 @@
                 <li class="nav-item">
                     <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#equipmentTab">
                         📦 Equipment Requests 
-                        <span class="badge bg-secondary">{{ $equipmentRequests->count() }}</span>
+                        <span class="count-chip tint-info">{{ $equipmentRequests->count() }}</span>
                     </button>
                 </li>
                 <li class="nav-item">
                     <button class="nav-link" data-bs-toggle="tab" data-bs-target="#exchangeTab">
                         🔄 Exchange Requests 
-                        <span class="badge bg-secondary">{{ $exchangeRequests->count() }}</span>
+                        <span class="count-chip tint-warning">{{ $exchangeRequests->count() }}</span>
                     </button>
                 </li>
                 <li class="nav-item">
                     <button class="nav-link" data-bs-toggle="tab" data-bs-target="#repairTab">
                         🔧 Repair Requests 
-                        <span class="badge bg-secondary">{{ $repairRequests->count() }}</span>
+                        <span class="count-chip tint-danger">{{ $repairRequests->count() }}</span>
                     </button>
                 </li>
                 <li class="nav-item">
                     <button class="nav-link" data-bs-toggle="tab" data-bs-target="#returnTab">
                         📤 Return Requests 
-                        <span class="badge bg-secondary">{{ $returnRequests->count() }}</span>
+                        <span class="count-chip tint-success">{{ $returnRequests->count() }}</span>
                     </button>
                 </li>
             </ul>
@@ -53,8 +52,8 @@
                         <div class="card-body">
                             @if($equipmentRequests->count() > 0)
                             <div class="table-responsive">
-                                <table class="table table-bordered" id="equipmentTable">
-                                    <thead class="table-light">
+                                <table class="table align-middle" id="equipmentTable" style="width:100%">
+                                    <thead>
                                         <tr>
                                             <th>Equipment</th>
                                             <th>Priority</th>
@@ -68,39 +67,42 @@
                                     <tbody>
                                         @foreach($equipmentRequests as $request)
                                         <tr>
-                                            <td>{{ $request->equipment->name ?? 'N/A' }}<br>
+                                            <td>
+                                                <strong>{{ $request->equipment->name ?? 'N/A' }}</strong><br>
                                                 <small class="text-muted">{{ $request->equipment->serial_number ?? '' }}</small>
                                             </td>
                                             <td>
                                                 @if($request->priority == 'Urgent')
-                                                    <span class="badge bg-danger">Urgent</span>
+                                                    <span class="badge-pill tint-danger">Urgent</span>
+                                                @elseif($request->priority == 'High')
+                                                    <span class="badge-pill tint-warning">High</span>
                                                 @elseif($request->priority == 'Normal')
-                                                    <span class="badge bg-warning">Normal</span>
+                                                    <span class="badge-pill tint-info">Normal</span>
                                                 @else
-                                                    <span class="badge bg-info">Low</span>
+                                                    <span class="badge-pill tint-success">Low</span>
                                                 @endif
                                             </td>
                                             <td>{{ Str::limit($request->request_reason, 60) }}</td>
                                             <td>{{ $request->request_date->format('d-m-Y') }}</td>
                                             <td>
                                                 @if($request->status == 'Pending')
-                                                    <span class="badge bg-warning">Pending</span>
+                                                    <span class="badge-pill tint-warning">Pending</span>
                                                 @elseif($request->status == 'Approved')
-                                                    <span class="badge bg-info">Approved</span>
+                                                    <span class="badge-pill tint-info">Approved</span>
                                                 @elseif($request->status == 'Fulfilled')
-                                                    <span class="badge bg-success">Fulfilled</span>
+                                                    <span class="badge-pill tint-success">Fulfilled</span>
                                                 @else
-                                                    <span class="badge bg-danger">Rejected</span>
+                                                    <span class="badge-pill tint-danger">Rejected</span>
                                                 @endif
                                             </td>
                                             <td>{{ $request->admin_notes ?? '-' }}</td>
                                             <td>
                                                 @if($request->status == 'Rejected' && $request->admin_message)
-                                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#eqRejectModal{{ $request->id }}">
+                                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eqRejectModal{{ $request->id }}">
                                                         View Reason
                                                     </button>
                                                 @else
-                                                    <span class="text-muted">-</span>
+                                                    <span class="text-muted">—</span>
                                                 @endif
                                             </td>
                                         </tr>
@@ -124,8 +126,8 @@
                         <div class="card-body">
                             @if($exchangeRequests->count() > 0)
                             <div class="table-responsive">
-                                <table class="table table-bordered" id="exchangeTable">
-                                    <thead class="table-light">
+                                <table class="table align-middle" id="exchangeTable" style="width:100%">
+                                    <thead>
                                         <tr>
                                             <th>Old Equipment</th>
                                             <th>Requested Equipment</th>
@@ -139,39 +141,41 @@
                                     <tbody>
                                         @foreach($exchangeRequests as $req)
                                         <tr>
-                                            <td>{{ $req->oldEquipment->name ?? 'N/A' }}<br>
+                                            <td>
+                                                <strong>{{ $req->oldEquipment->name ?? 'N/A' }}</strong><br>
                                                 <small class="text-muted">{{ $req->oldEquipment->serial_number ?? '' }}</small>
                                             </td>
-                                            <td>{{ $req->requestedEquipment->name ?? 'N/A' }}<br>
+                                            <td>
+                                                <strong>{{ $req->requestedEquipment->name ?? 'N/A' }}</strong><br>
                                                 <small class="text-muted">{{ $req->requestedEquipment->serial_number ?? '' }}</small>
                                             </td>
                                             <td>{{ Str::limit($req->exchange_reason, 50) }}</td>
                                             <td>
                                                 @if($req->has_damage)
-                                                    <span class="badge bg-danger">Damaged</span>
+                                                    <span class="badge-pill tint-danger">Damaged</span>
                                                 @else
-                                                    <span class="badge bg-success">Good</span>
+                                                    <span class="badge-pill tint-success">Good</span>
                                                 @endif
                                             </td>
                                             <td>{{ $req->request_date->format('d-m-Y') }}</td>
                                             <td>
                                                 @if($req->status == 'Pending')
-                                                    <span class="badge bg-warning">Pending</span>
+                                                    <span class="badge-pill tint-warning">Pending</span>
                                                 @elseif($req->status == 'Approved')
-                                                    <span class="badge bg-info">Approved</span>
+                                                    <span class="badge-pill tint-info">Approved</span>
                                                 @elseif($req->status == 'Completed')
-                                                    <span class="badge bg-success">Completed</span>
+                                                    <span class="badge-pill tint-success">Completed</span>
                                                 @else
-                                                    <span class="badge bg-danger">Rejected</span>
+                                                    <span class="badge-pill tint-danger">Rejected</span>
                                                 @endif
                                             </td>
                                             <td>
                                                 @if($req->status == 'Rejected' && $req->admin_message)
-                                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#exRejectModal{{ $req->id }}">
+                                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exRejectModal{{ $req->id }}">
                                                         View Reason
                                                     </button>
                                                 @else
-                                                    <span class="text-muted">-</span>
+                                                    <span class="text-muted">—</span>
                                                 @endif
                                             </td>
                                         </tr>
@@ -182,7 +186,7 @@
                             @else
                             <div class="text-center py-5">
                                 <p class="text-muted">No exchange requests found</p>
-                                <a href="{{ route('employee.requests.exchange.form') }}" class="btn btn-warning">Request Exchange</a>
+                                <a href="{{ route('employee.requests.exchange.form') }}" class="btn btn-primary">Request Exchange</a>
                             </div>
                             @endif
                         </div>
@@ -195,8 +199,8 @@
                         <div class="card-body">
                             @if($repairRequests->count() > 0)
                             <div class="table-responsive">
-                                <table class="table table-bordered" id="repairTable">
-                                    <thead class="table-light">
+                                <table class="table align-middle" id="repairTable" style="width:100%">
+                                    <thead>
                                         <tr>
                                             <th>Equipment</th>
                                             <th>Issue</th>
@@ -209,40 +213,41 @@
                                     <tbody>
                                         @foreach($repairRequests as $req)
                                         <tr>
-                                            <td>{{ $req->equipment->name ?? 'N/A' }}<br>
+                                            <td>
+                                                <strong>{{ $req->equipment->name ?? 'N/A' }}</strong><br>
                                                 <small class="text-muted">{{ $req->equipment->serial_number ?? '' }}</small>
                                             </td>
                                             <td>{{ Str::limit($req->issue_description, 60) }}</td>
                                             <td>
                                                 @if($req->urgency == 'Critical')
-                                                    <span class="badge bg-danger">Critical</span>
+                                                    <span class="badge-pill tint-danger">Critical</span>
                                                 @elseif($req->urgency == 'High')
-                                                    <span class="badge bg-warning">High</span>
+                                                    <span class="badge-pill tint-warning">High</span>
                                                 @elseif($req->urgency == 'Medium')
-                                                    <span class="badge bg-info">Medium</span>
+                                                    <span class="badge-pill tint-info">Medium</span>
                                                 @else
-                                                    <span class="badge bg-success">Low</span>
+                                                    <span class="badge-pill tint-success">Low</span>
                                                 @endif
                                             </td>
                                             <td>{{ $req->request_date->format('d-m-Y') }}</td>
                                             <td>
                                                 @if($req->status == 'Pending')
-                                                    <span class="badge bg-warning">Pending</span>
+                                                    <span class="badge-pill tint-warning">Pending</span>
                                                 @elseif($req->status == 'Approved')
-                                                    <span class="badge bg-info">In Repair</span>
+                                                    <span class="badge-pill tint-info">In Repair</span>
                                                 @elseif($req->status == 'Completed')
-                                                    <span class="badge bg-success">Completed</span>
+                                                    <span class="badge-pill tint-success">Completed</span>
                                                 @else
-                                                    <span class="badge bg-danger">Rejected</span>
+                                                    <span class="badge-pill tint-danger">Rejected</span>
                                                 @endif
                                             </td>
                                             <td>
                                                 @if($req->status == 'Rejected' && $req->admin_message)
-                                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#repRejectModal{{ $req->id }}">
+                                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#repRejectModal{{ $req->id }}">
                                                         View Reason
                                                     </button>
                                                 @else
-                                                    <span class="text-muted">-</span>
+                                                    <span class="text-muted">—</span>
                                                 @endif
                                             </td>
                                         </tr>
@@ -253,7 +258,7 @@
                             @else
                             <div class="text-center py-5">
                                 <p class="text-muted">No repair requests found</p>
-                                <a href="{{ route('employee.requests.repair.form') }}" class="btn btn-danger">Report Repair</a>
+                                <a href="{{ route('employee.requests.repair.form') }}" class="btn btn-primary">Report Repair</a>
                             </div>
                             @endif
                         </div>
@@ -266,8 +271,8 @@
                         <div class="card-body">
                             @if($returnRequests->count() > 0)
                             <div class="table-responsive">
-                                <table class="table table-bordered" id="returnTable">
-                                    <thead class="table-light">
+                                <table class="table align-middle" id="returnTable" style="width:100%">
+                                    <thead>
                                         <tr>
                                             <th>Equipment</th>
                                             <th>Return Reason</th>
@@ -280,7 +285,8 @@
                                     <tbody>
                                         @foreach($returnRequests as $req)
                                         <tr>
-                                            <td>{{ $req->equipment->name ?? 'N/A' }}<br>
+                                            <td>
+                                                <strong>{{ $req->equipment->name ?? 'N/A' }}</strong><br>
                                                 <small class="text-muted">{{ $req->equipment->serial_number ?? '' }}</small>
                                             </td>
                                             <td>{{ $req->return_reason }}</td>
@@ -288,22 +294,22 @@
                                             <td>{{ $req->return_date->format('d-m-Y') }}</td>
                                             <td>
                                                 @if($req->status == 'Pending')
-                                                    <span class="badge bg-warning">Pending</span>
+                                                    <span class="badge-pill tint-warning">Pending</span>
                                                 @elseif($req->status == 'Approved')
-                                                    <span class="badge bg-info">Approved</span>
+                                                    <span class="badge-pill tint-info">Approved</span>
                                                 @elseif($req->status == 'Completed')
-                                                    <span class="badge bg-success">Completed</span>
+                                                    <span class="badge-pill tint-success">Completed</span>
                                                 @else
-                                                    <span class="badge bg-danger">Rejected</span>
+                                                    <span class="badge-pill tint-danger">Rejected</span>
                                                 @endif
                                             </td>
                                             <td>
                                                 @if($req->status == 'Rejected' && $req->admin_message)
-                                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#retRejectModal{{ $req->id }}">
+                                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#retRejectModal{{ $req->id }}">
                                                         View Reason
                                                     </button>
                                                 @else
-                                                    <span class="text-muted">-</span>
+                                                    <span class="text-muted">—</span>
                                                 @endif
                                             </td>
                                         </tr>
@@ -314,13 +320,12 @@
                             @else
                             <div class="text-center py-5">
                                 <p class="text-muted">No return requests found</p>
-                                <a href="{{ route('employee.requests.return.form') }}" class="btn btn-info">Return Equipment</a>
+                                <a href="{{ route('employee.requests.return.form') }}" class="btn btn-primary">Return Equipment</a>
                             </div>
                             @endif
                         </div>
                     </div>
                 </div>
-                
             </div>
         </div>
     </div>
@@ -330,7 +335,7 @@
 @foreach($equipmentRequests as $request)
     @if($request->status == 'Rejected' && $request->admin_message)
     <div class="modal fade" id="eqRejectModal{{ $request->id }}" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">Request Rejected</h5>
@@ -356,7 +361,7 @@
 @foreach($exchangeRequests as $request)
     @if($request->status == 'Rejected' && $request->admin_message)
     <div class="modal fade" id="exRejectModal{{ $request->id }}" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">Exchange Request Rejected</h5>
@@ -382,7 +387,7 @@
 @foreach($repairRequests as $request)
     @if($request->status == 'Rejected' && $request->admin_message)
     <div class="modal fade" id="repRejectModal{{ $request->id }}" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">Repair Request Rejected</h5>
@@ -408,7 +413,7 @@
 @foreach($returnRequests as $request)
     @if($request->status == 'Rejected' && $request->admin_message)
     <div class="modal fade" id="retRejectModal{{ $request->id }}" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">Return Request Rejected</h5>
@@ -438,68 +443,48 @@ $(document).ready(function() {
     $('#equipmentTable').DataTable({
         pageLength: 10,
         order: [[3, 'desc']],
-        responsive: true,
         language: {
-            search: "Search:",
-            lengthMenu: "Show _MENU_ entries",
+            search: "",
+            searchPlaceholder: "Search equipment requests...",
+            lengthMenu: "Show _MENU_",
             info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            paginate: {
-                first: "First",
-                last: "Last",
-                next: "Next",
-                previous: "Previous"
-            }
+            paginate: { first: "«", last: "»", next: "›", previous: "‹" }
         }
     });
     
     $('#exchangeTable').DataTable({
         pageLength: 10,
         order: [[4, 'desc']],
-        responsive: true,
         language: {
-            search: "Search:",
-            lengthMenu: "Show _MENU_ entries",
+            search: "",
+            searchPlaceholder: "Search exchange requests...",
+            lengthMenu: "Show _MENU_",
             info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            paginate: {
-                first: "First",
-                last: "Last",
-                next: "Next",
-                previous: "Previous"
-            }
+            paginate: { first: "«", last: "»", next: "›", previous: "‹" }
         }
     });
     
     $('#repairTable').DataTable({
         pageLength: 10,
         order: [[3, 'desc']],
-        responsive: true,
         language: {
-            search: "Search:",
-            lengthMenu: "Show _MENU_ entries",
+            search: "",
+            searchPlaceholder: "Search repair requests...",
+            lengthMenu: "Show _MENU_",
             info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            paginate: {
-                first: "First",
-                last: "Last",
-                next: "Next",
-                previous: "Previous"
-            }
+            paginate: { first: "«", last: "»", next: "›", previous: "‹" }
         }
     });
     
     $('#returnTable').DataTable({
         pageLength: 10,
         order: [[3, 'desc']],
-        responsive: true,
         language: {
-            search: "Search:",
-            lengthMenu: "Show _MENU_ entries",
+            search: "",
+            searchPlaceholder: "Search return requests...",
+            lengthMenu: "Show _MENU_",
             info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            paginate: {
-                first: "First",
-                last: "Last",
-                next: "Next",
-                previous: "Previous"
-            }
+            paginate: { first: "«", last: "»", next: "›", previous: "‹" }
         }
     });
 });

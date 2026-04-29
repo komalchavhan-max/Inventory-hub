@@ -15,7 +15,6 @@ class EquipmentUpdateRequest extends FormRequest
         
         return [
             'name' => 'required|min:3|max:255',
-            'serial_number' => 'required|unique:equipment,serial_number,' . $id,
             'category_id' => 'required|exists:categories,id',
             'status' => 'required|in:Available,Assigned,In-Repair,Archived',
             'description' => 'nullable|string',
@@ -30,8 +29,6 @@ class EquipmentUpdateRequest extends FormRequest
     public function messages(){
         return [
             'name.required' => 'Equipment name is required',
-            'serial_number.required' => 'Serial number is required',
-            'serial_number.unique' => 'This serial number already exists',
             'category_id.required' => 'Please select a category',
             'status.required' => 'Status is required',
             'status.in' => 'Invalid status selected',
