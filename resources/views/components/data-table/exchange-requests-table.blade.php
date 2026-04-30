@@ -140,6 +140,10 @@ $(function () {
                 var equipmentName = $(this).data('equipment');
                 showRejectModal(id, employeeName, equipmentName);
             });
+            $('.view-message-btn').off('click').on('click', function () {
+                var message = $(this).data('message');
+                showMessageModal(message);
+            });
         }
     });
 

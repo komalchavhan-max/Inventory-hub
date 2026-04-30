@@ -60,8 +60,7 @@
                                             <th>Reason</th>
                                             <th>Date</th>
                                             <th>Status</th>
-                                            <th>Admin Response</th>
-                                            <th>Message</th>
+                                            <th>Admin Message</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -95,7 +94,6 @@
                                                     <span class="badge-pill tint-danger">Rejected</span>
                                                 @endif
                                             </td>
-                                            <td>{{ $request->admin_notes ?? '-' }}</td>
                                             <td>
                                                 @if($request->status == 'Rejected' && $request->admin_message)
                                                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eqRejectModal{{ $request->id }}">

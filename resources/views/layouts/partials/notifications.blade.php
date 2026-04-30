@@ -1,5 +1,5 @@
 <li class="nav-item dropdown">
-    <a class="nav-link position-relative p-2" href="#" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+    <a class="nav-link position-relative p-2 dropdown-toggle" href="#" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
         <i class="bi bi-bell fs-5"></i>
         <span id="notificationCount" class="notification-badge" style="display: none; position: absolute; top: 0; right: 0; background-color: #dc3545; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; font-weight: bold; min-width: 18px; text-align: center;"></span>
     </a>
@@ -49,11 +49,3 @@
     padding: 3px 8px;
 }
 </style>
-<script>
-// Refresh notifications every 10 seconds
-setInterval(function() {
-    if (typeof loadNotifications === 'function') {
-        loadNotifications();
-    }
-}, 10000);
-</script>

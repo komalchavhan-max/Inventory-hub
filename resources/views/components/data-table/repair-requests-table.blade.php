@@ -153,6 +153,11 @@ $(function () {
             $('.reject-btn').off('click').on('click', function () {
                 showRejectModal($(this).data('id'), $(this).data('employee'), $(this).data('equipment'));
             });
+
+            $('.view-message-btn').off('click').on('click', function () {
+                var message = $(this).data('message');
+                showMessageModal(message);
+            });
         }
     });
 
@@ -163,6 +168,12 @@ $(function () {
         $m.find('form').attr('action', '/admin/requests/repair/' + id + '/reject');
         $m.modal('show');
     }
+
+    function showMessageModal(message) {
+    var $m = $('#messageModalTemplate').children().clone();
+    $m.find('.message-content').text(message);
+    $m.modal('show');
+}
 });
 </script>
 @endpush

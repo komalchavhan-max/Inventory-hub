@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="user-id" content="{{ Auth::id() }}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -29,6 +30,9 @@
     <link href="{{ asset('css/my-requests.css') }}" rel="stylesheet">
     <link href="{{ asset('css/requests.css') }}" rel="stylesheet">
     
+    <!-- Vite (for Reverb/Echo) -->
+    @vite(['resources/js/app.js'])
+    
     @stack('styles')
 </head>
 <body>
@@ -49,7 +53,7 @@
                 @php
                     $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=4f46e5&color=fff&rounded=true&size=64';
                 @endphp
-                <button type="button" class="user-menu" data-bs-toggle="dropdown" aria-expanded="false">
+                <button type="button" class="user-menu dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     <img src="{{ $avatarUrl }}" alt="">
                     <span class="name">{{ Auth::user()->name }}</span>
                     <i class="bi bi-chevron-down text-muted small"></i>
@@ -67,6 +71,7 @@
             </div>
         </div>
 
+        <!-- Flash Messages -->
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
@@ -94,13 +99,21 @@
         @yield('content')
     </div>
 
+    <!-- 1. jQuery (required by Bootstrap and DataTables) -->
     <script src="{{ asset('src/assets/libs/jquery/dist/jquery.min.js') }}"></script>
+    
+    <!-- 2. Bootstrap JS (requires jQuery) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 3. Iconify -->
     <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    
+    <!-- 4. DataTables JS (requires jQuery) -->
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
-
+    
+    <!-- 5. Sidebar Toggle Script -->
     <script>
         (function () {
             var toggle = document.getElementById('sidebarToggle');
@@ -114,8 +127,39 @@
             }
         })();
     </script>
-    @stack('scripts')
+    
+    <!-- 6. Custom Scripts (after all dependencies) -->
     <script src="{{ asset('js/notifications.js') }}"></script>
     <script src="{{ asset('js/validation.js') }}"></script>
+    
+    <!-- 7. Stack Scripts -->
+    @stack('scripts')
+
+       
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileBtn = document.querySelector('.user-menu');
+            if (profileBtn) {
+                profileBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const dropdownMenu = this.nextElementSibling;
+                    if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu')) {
+                        dropdownMenu.classList.toggle('show');
+                    }
+                });
+            }
+
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
+                    openDropdowns.forEach(function(dropdown) {
+                        dropdown.classList.remove('show');
+                    });
+                }
+            });
+        });
+    </script>
+
 </body>
 </html>

@@ -76,7 +76,6 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Serial Number</th>
                                 <th>Category</th>
                                 <th>Status</th>
                             </tr>
@@ -95,7 +94,6 @@
                                 @endphp
                                 <tr>
                                     <td class="fw-medium">{{ $item->name }}</td>
-                                    <td class="text-muted">{{ $item->serial_number }}</td>
                                     <td>{{ $item->category->name ?? 'Uncategorized' }}</td>
                                     <td><span class="badge-pill {{ $cls }}">{{ $lbl }}</span></td>
                                 </tr>

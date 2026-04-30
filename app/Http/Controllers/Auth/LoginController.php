@@ -12,6 +12,8 @@ class LoginController extends Controller
 
     protected $redirectTo = '/dashboard';
 
+    public function __construct(){}
+
     public function redirectTo() {
         if (auth()->user()->role && auth()->user()->role->name === 'admin') {
             return '/admin/dashboard';

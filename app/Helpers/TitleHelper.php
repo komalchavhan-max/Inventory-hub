@@ -12,7 +12,7 @@ class TitleHelper
             return 'Dashboard';
         }
         
-        $cleanName = preg_replace('/^(admin|employee)\./', '', $routeName);     // Remove prefix (admin., employee., etc.)
+        $cleanName = preg_replace('/^(admin|employee)\./', '', $routeName);     
         
         $parts = explode('.', $cleanName);
         

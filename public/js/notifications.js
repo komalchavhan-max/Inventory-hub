@@ -1,35 +1,72 @@
-// notifications.js - Fixed version with proper stop conditions
-let notificationInterval = null;
-let pollingCount = 0;
-let isPageVisible = true;
-let isUserActive = true;
-let inactiveTimer = null;
-const MAX_POLLING = 30;        // Stop after 30 polls (15 minutes)
-const INACTIVE_TIMEOUT = 300000; // 5 minutes of inactivity
+// Real-time notifications using Laravel Reverb (No Polling)
 
-function loadNotifications() {
-    if (!isPageVisible || !isUserActive) {
-        console.log('Polling skipped - page hidden or user inactive');
-        return;
+let echo = null;
+
+function initializeEcho() {
+    if (typeof window.Echo !== 'undefined' && !echo) {
+        const userId = document.querySelector('meta[name="user-id"]')?.getAttribute('content');
+        
+        if (userId) {
+            echo = window.Echo;
+            echo.private(`notifications.${userId}`)
+                .listen('.new-notification', (data) => {
+                    console.log('New notification received:', data);
+                    loadNotifications();
+                    // Also update count if dropdown is closed
+                    updateNotificationCount();
+                });
+            console.log('WebSocket connected - Real-time notifications enabled');
+        }
+    } else {
+        console.log('Waiting for Echo to initialize...');
+        setTimeout(initializeEcho, 1000);
     }
-    
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    if (!token) return;
-    
+}
+
+function updateNotificationCount() {
     fetch('/notifications/fetch', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': token,
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
             'Accept': 'application/json'
         }
     })
     .then(response => response.json())
     .then(data => {
+        const countSpan = document.getElementById('notificationCount');
+        if (data.unread_count > 0 && countSpan) {
+            countSpan.textContent = data.unread_count > 9 ? '9+' : data.unread_count;
+            countSpan.style.display = 'block';
+        } else if (countSpan) {
+            countSpan.style.display = 'none';
+        }
+    })
+    .catch(error => console.error('Error updating count:', error));
+}
+
+function loadNotifications() {
+    console.log('Loading notifications...');
+    
+    fetch('/notifications/fetch', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Notifications loaded:', data.notifications?.length || 0, 'items');
+        
         const container = document.getElementById('notificationList');
         const countSpan = document.getElementById('notificationCount');
         
-        if (!container) return;
+        if (!container) {
+            console.error('Notification list container not found!');
+            return;
+        }
         
         if (!data.notifications || data.notifications.length === 0) {
             container.innerHTML = '<div class="text-center py-3 text-muted">No notifications</div>';
@@ -47,9 +84,12 @@ function loadNotifications() {
             } else if (notif.status === 'Rejected') {
                 statusClass = 'danger';
                 statusText = '✗ Rejected';
-            } else if (notif.status === 'Info') {
-                statusClass = 'info';
-                statusText = 'ℹ Info';
+            } else if (notif.status === 'Completed') {
+                statusClass = 'success';
+                statusText = '✓ Completed';
+            } else if (notif.status === 'Pending') {
+                statusClass = 'warning';
+                statusText = '⏳ Pending';
             }
             
             const unreadClass = notif.is_read ? '' : 'unread';
@@ -73,17 +113,19 @@ function loadNotifications() {
     })
     .catch(error => {
         console.error('Error loading notifications:', error);
+        const container = document.getElementById('notificationList');
+        if (container) {
+            container.innerHTML = '<div class="text-center py-3 text-danger">Failed to load notifications</div>';
+        }
     });
 }
 
 function markAsRead(notificationId) {
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    
     fetch('/notifications/mark-read', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': token,
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
             'Accept': 'application/json'
         },
         body: JSON.stringify({ id: notificationId })
@@ -94,13 +136,11 @@ function markAsRead(notificationId) {
 }
 
 function markAllAsRead() {
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    
     fetch('/notifications/mark-all-read', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': token,
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
             'Accept': 'application/json'
         }
     })
@@ -116,60 +156,23 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function resetInactiveTimer() {
-    isUserActive = true;
-    if (inactiveTimer) {
-        clearTimeout(inactiveTimer);
-    }
-    inactiveTimer = setTimeout(() => {
-        isUserActive = false;
-        console.log('User inactive - polling stopped');
-    }, INACTIVE_TIMEOUT);
-}
-
-function startPolling() {
-    if (notificationInterval) {            // Clear any existing interval
-        clearInterval(notificationInterval);
-        notificationInterval = null;
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing notifications...');
+    
+    // Load notifications when dropdown is opened
+    const dropdownToggle = document.getElementById('notificationDropdown');
+    if (dropdownToggle) {
+        dropdownToggle.addEventListener('click', function() {
+            loadNotifications();
+        });
     }
     
-    pollingCount = 0;
-    isPageVisible = true;
-    isUserActive = true;
-    
-    notificationInterval = setInterval(function() {
-        pollingCount++;
-        
-        if (pollingCount >= MAX_POLLING) {     // Stop after maximum polls
-            clearInterval(notificationInterval);
-            notificationInterval = null;
-            console.log('Notifications polling stopped (max limit of ' + MAX_POLLING + ' polls reached)');
-            return;
-        }
-        
-        loadNotifications();
-    }, 30000);
-    
-    console.log('Notifications polling started - will stop after ' + MAX_POLLING + ' polls');
-}
-
-function stopPolling() {
-    if (notificationInterval) {
-        clearInterval(notificationInterval);
-        notificationInterval = null;
-        console.log('Notifications polling stopped');
-    }
-}
-
-document.addEventListener('mousemove', resetInactiveTimer);    // Track user activity
-document.addEventListener('keypress', resetInactiveTimer);
-document.addEventListener('click', resetInactiveTimer);
-document.addEventListener('scroll', resetInactiveTimer);
-
-document.addEventListener('DOMContentLoaded', function() {      // Initialize
+    // Initial load
     loadNotifications();
-    startPolling();
-    resetInactiveTimer();
+    
+    // Initialize WebSocket for real-time
+    setTimeout(initializeEcho, 500);
     
     const markAllBtn = document.getElementById('markAllReadBtn');
     if (markAllBtn) {
@@ -186,18 +189,19 @@ document.addEventListener('DOMContentLoaded', function() {      // Initialize
             if (id) markAsRead(id);
         }
     });
-    
-    document.addEventListener('visibilitychange', function() {    
-        isPageVisible = !document.hidden;
-        if (document.hidden) {
-            stopPolling();
-        } else {
-            startPolling();
-            loadNotifications();
-        }
-    });
 });
 
-window.addEventListener('beforeunload', function() {    // Stop polling when page is closed
-    stopPolling();
+// Force dropdown to work
+document.addEventListener('DOMContentLoaded', function() {
+    const bellIcon = document.getElementById('notificationDropdown');
+    if (bellIcon) {
+        bellIcon.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const dropdown = document.querySelector('.dropdown-menu');
+            if (dropdown) {
+                dropdown.classList.toggle('show');
+            }
+        });
+    }
 });
