@@ -85,3 +85,15 @@
     border-color: var(--ih-primary);
     box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
 }
+
+.notification-wrapper .dropdown-toggle::after,
+.btn-group.dropend > .dropdown-toggle::after {
+    display: none !important;
+    content: "" !important;
+}
+
+.btn-group.dropend > .dropdown-toggle::after,
+.user-menu::after {
+    display: none !important;
+    content: "" !important;
+}

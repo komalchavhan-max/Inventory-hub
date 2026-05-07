@@ -56,7 +56,6 @@
                 <button type="button" class="user-menu dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     <img src="{{ $avatarUrl }}" alt="">
                     <span class="name">{{ Auth::user()->name }}</span>
-                    <i class="bi bi-chevron-down text-muted small"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li class="px-3 py-2 small text-muted">{{ Auth::user()->email }}</li>

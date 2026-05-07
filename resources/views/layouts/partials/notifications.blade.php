@@ -1,9 +1,9 @@
-<li class="nav-item dropdown">
-    <a class="nav-link position-relative p-2 dropdown-toggle" href="#" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+<li class="nav-item" style="position: relative;">
+    <a class="nav-link position-relative p-2" href="#" id="notificationBell" style="cursor: pointer;">
         <i class="bi bi-bell fs-5"></i>
         <span id="notificationCount" class="notification-badge" style="display: none; position: absolute; top: 0; right: 0; background-color: #dc3545; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; font-weight: bold; min-width: 18px; text-align: center;"></span>
     </a>
-    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" style="width: 350px; max-height: 500px; overflow-y: auto;">
+    <div id="notificationPanel" style="display: none; position: absolute; right: 0 !important; left: auto !important; top: 40px; width: 350px; max-height: 500px; overflow-y: auto; background: #fff; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); z-index: 9999;">
         <div class="dropdown-header d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-light">
             <h6 class="mb-0">Notifications</h6>
             <a href="#" id="markAllReadBtn" class="small text-primary text-decoration-none">Mark all as read</a>
@@ -49,3 +49,34 @@
     padding: 3px 8px;
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var bell = document.getElementById('notificationBell');
+    var panel = document.getElementById('notificationPanel');
+    
+    if (bell) {
+        bell.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+                if (typeof loadNotifications === 'function') {
+                    loadNotifications();
+                }
+            } else {
+                panel.style.display = 'none';
+            }
+        });
+    }
+    
+    document.addEventListener('click', function(e) {
+        if (panel && bell) {
+            if (!bell.contains(e.target) && !panel.contains(e.target)) {
+                panel.style.display = 'none';
+            }
+        }
+    });
+});
+</script>

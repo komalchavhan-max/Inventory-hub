@@ -644,3 +644,72 @@ a .stat-card {
 .custom-dropdown .dropdown-menu.show {
     display: block;
 }
+
+
+.user-menu.dropdown-toggle::after {
+    display: none !important;
+    content: "" !important;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: auto;
+    left: auto;
+    z-index: 1050;
+}
+
+.nav-item.dropdown {
+    position: relative;
+}
+
+.dropdown-menu-end {
+    right: 0;
+    left: auto !important;
+}
+
+.nav-item.dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    z-index: 1050;
+}
+
+.dropdown-menu-end {
+    right: 0;
+    left: auto !important;
+}
+
+.dropdown-toggle::after {
+    display: none !important;
+}
+
+.notification-dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 8px;
+}
+
+.notification-panel {
+    position: absolute;
+    right: 0;
+    top: 100%;
+}
+
+.notification-panel {
+    right: 0 !important;
+    left: auto !important;
+}
+
+.nav-item {
+    position: relative;
+}
+
+.nav-item .notification-panel {
+    right: 0 !important;
+    left: auto !important;
+}

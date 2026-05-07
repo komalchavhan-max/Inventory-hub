@@ -56,10 +56,9 @@
                 @php
                     $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=4f46e5&color=fff&rounded=true&size=64';
                 @endphp
-                <button type="button" class="btn btn-link dropdown-toggle user-menu" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none; color: inherit;">
+                <button type="button" class="btn btn-link user-menu" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none; color: inherit;">
                     <img src="{{ $avatarUrl }}" alt="" style="width: 32px; height: 32px; border-radius: 50%;">
                     <span class="name">{{ Auth::user()->name }}</span>
-                    <i class="bi bi-chevron-down text-muted small"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li class="px-3 py-2 small text-muted">{{ Auth::user()->email }}</li>
